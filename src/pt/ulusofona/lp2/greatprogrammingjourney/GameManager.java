@@ -20,7 +20,7 @@ public class GameManager {
         this.playerInfo = playerInfo;
         this.boardSize = worldSize;
 
-        if (playerInfo.length < 2){
+        if (playerInfo.length < 2 || playerInfo.length > 4){
             return false;
         }
 
@@ -161,13 +161,14 @@ public class GameManager {
                 Arrays.sort(linguagens);
                 String linguagensOrdenadas = String.join("; ", linguagens);
 
-                String estado = (pos < boardSize) ? "Em Jogo" : "Derrotado";
+                String estado = (pos < boardSize) ? "Em Jogo" : "Em Jogo";
 
                 return new String[]{
-                        jogador[0],
-                        jogador[1],
-                        String.valueOf(pos),
-                        linguagensOrdenadas,
+                        jogador[0],           // ID
+                        jogador[1],           // Nome
+                        jogador[3],           // Cor
+                        linguagensOrdenadas,  // Linguagens
+                        String.valueOf(pos),  // Posição
                         estado
                 };
             }
