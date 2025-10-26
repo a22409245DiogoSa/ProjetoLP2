@@ -20,6 +20,10 @@ public class GameManager {
         this.playerInfo = playerInfo;
         this.boardSize = worldSize;
 
+        if (playerInfo.length < 2){
+            return false;
+        }
+
         if (worldSize < 2 * playerInfo.length) {
             throw new IllegalArgumentException(
                     "O tamanho do tabuleiro deve ser pelo menos o dobro do número de jogadores."
@@ -146,7 +150,9 @@ public class GameManager {
         for (String[] jogador : playerInfo) {
             if (jogador[0].equals(idStr)) {
                 Integer pos = positions.get(idStr);
-                if (pos == null) return null;
+                if (pos == null) {
+                    return null;
+                }
 
                 String[] linguagens = jogador[2].split(";");
                 for (int i = 0; i < linguagens.length; i++) {
@@ -160,9 +166,8 @@ public class GameManager {
                 return new String[]{
                         jogador[0],
                         jogador[1],
-                        linguagensOrdenadas,
-                        jogador[3],
                         String.valueOf(pos),
+                        linguagensOrdenadas,
                         estado
                 };
             }
@@ -172,7 +177,9 @@ public class GameManager {
 
     public String getProgrammerInfoAsStr(int id) {
         String[] info = getProgrammerInfo(id);
-        if (info == null) return null;
+        if (info == null) {
+            return null;
+        }
         return String.join(" | ", info);
     }
 
