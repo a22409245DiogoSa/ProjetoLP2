@@ -164,11 +164,10 @@ public class GameManager {
                 String estado = (pos < boardSize) ? "Em Jogo" : "Em Jogo";
 
                 return new String[]{
-                        jogador[0],           // ID
-                        jogador[1],           // Nome
-                        jogador[3],           // Cor
-                        linguagensOrdenadas,  // Linguagens
-                        String.valueOf(pos),  // Posição
+                        jogador[0],
+                        jogador[1],
+                        String.valueOf(pos),
+                        linguagensOrdenadas,
                         estado
                 };
             }
