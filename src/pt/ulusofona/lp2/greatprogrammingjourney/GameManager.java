@@ -15,7 +15,7 @@ public class GameManager {
     int turnCount = 1;
 
     public GameManager() {}
-
+/*
     public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
         this.playerInfo = playerInfo;
         this.boardSize = worldSize;
@@ -35,7 +35,8 @@ public class GameManager {
             throw new IllegalArgumentException(
                     "O tamanho do tabuleiro deve ser pelo menos o dobro do número de jogadores."
                     )
-             */
+
+
         }
 
         board = new ArrayList[boardSize];
@@ -60,6 +61,56 @@ public class GameManager {
         gameState = EstadoJogo.EM_ANDAMENTO;
         return true;
     }
+    ¨*/
+public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
+    if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4) {
+        return false;
+    }
+
+    if (worldSize < (2 * playerInfo.length)) {
+        return false;
+    }
+
+    // Guardar as informações no objeto
+    this.playerInfo = playerInfo;
+    this.boardSize = worldSize;
+    this.positions = new HashMap<>();
+    this.board = new ArrayList[worldSize];
+
+    for (int i = 0; i < worldSize; i++) {
+        board[i] = new ArrayList<>();
+    }
+
+    // Colocar todos os jogadores na posição inicial (1)
+    for (String[] jogador : playerInfo) {
+        if (jogador == null || jogador.length != 4) {
+            return false;
+        }
+
+        String id = jogador[0];
+        String nome = jogador[1];
+        String linguagens = jogador[2];
+        String cor = jogador[3];
+
+        if (id == null || nome == null || linguagens == null || cor == null) {
+            return false;
+        }
+
+        board[0].add(id);
+        positions.put(id, 1);
+    }
+
+    String menorID = playerInfo[0][0];
+    for (String[] jogador : playerInfo) {
+        if (Integer.parseInt(jogador[0]) < Integer.parseInt(menorID)) {
+            menorID = jogador[0];
+        }
+    }
+    currentPlayer = menorID;
+    gameState = EstadoJogo.EM_ANDAMENTO;
+
+    return true;
+}
 
     public int getCurrentPlayerID() {
         return Integer.parseInt(currentPlayer);
@@ -234,26 +285,5 @@ public class GameManager {
         }
         return null;
     }
-
-    public String getColor(int id) {
-        if (playerInfo == null) {
-            return null;
-        }
-
-        for (String[] player : playerInfo) {
-            if (player != null && player.length >= 4) {
-                    int playerId = Integer.parseInt(player[0]);
-                    if (playerId == id) {
-                        String cor = player[3].trim();
-
-                        if (!cor.isEmpty()) {
-                            return cor.substring(0, 1).toUpperCase() + cor.substring(1).toLowerCase();
-                        }
-                    }
-            }
-        }
-        return null;
-    }
-
 
 }
