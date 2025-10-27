@@ -19,6 +19,11 @@ public class GameManager {
     public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
         this.playerInfo = playerInfo;
         this.boardSize = worldSize;
+        positions = new HashMap<>();
+
+        if (positions == null) {
+            return false;
+        }
 
         if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4){
             return false;
@@ -38,7 +43,6 @@ public class GameManager {
             board[i] = new ArrayList<>();
         }
 
-        positions = new HashMap<>();
 
         for (String[] jogador : playerInfo) {
             String id = jogador[0];
@@ -62,6 +66,11 @@ public class GameManager {
     }
 
     public boolean moveCurrentPlayer(int nrSpaces) {
+
+        if (positions == null) {
+            return false;
+        }
+
         if (nrSpaces < 1 || nrSpaces > 6) {
             return false;
         }
@@ -150,6 +159,10 @@ public class GameManager {
     public String[] getProgrammerInfo(int id) {
         String idStr = String.valueOf(id);
 
+        if (positions == null) {
+            return null;
+        }
+
         for (String[] jogador : playerInfo) {
             if (jogador[0].equals(idStr)) {
                 Integer pos = positions.get(idStr);
@@ -157,19 +170,15 @@ public class GameManager {
                     return null;
                 }
 
-                String[] linguagens = jogador[2].split(";");
+
+                String[] linguagens = jogador[3].split(";");
                 for (int i = 0; i < linguagens.length; i++) {
                     linguagens[i] = linguagens[i].trim();
                 }
                 Arrays.sort(linguagens);
                 String linguagensOrdenadas = String.join("; ", linguagens);
 
-
-                String cor = jogador[3].toUpperCase();
-
-
-                String estado = (pos >= boardSize) ? "Em Jogo" : "Em Jogo";
-
+                String estado = (pos >= boardSize) ? "Derrotado" : "Em Jogo";
 
                 return new String[]{
                         jogador[0],
@@ -227,21 +236,5 @@ public class GameManager {
         return null;
     }
 
-    public String getColor(int id) {
-        String idStr = String.valueOf(id);
-        for (String[] jogador : playerInfo) {
-            if (jogador[0].equals(idStr)) {
-                if (jogador.length > 3) {
-                    String cor = jogador[3].trim();
-                    if (cor.length() > 1) {
-                        return cor.substring(0, 1).toUpperCase() + cor.substring(1).toLowerCase();
-                    } else {
-                        return cor.toUpperCase();
-                    }
-                }
-            }
-        }
-        return null;
-    }
 
 }
