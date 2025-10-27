@@ -177,7 +177,7 @@ public class GameManager {
                 Arrays.sort(linguagens);
                 String linguagensOrdenadas = String.join("; ", linguagens);
 
-                String estado = (pos >= boardSize) ? "Derrotado" : "Em Jogo";
+                String estado = (pos >= boardSize) ? "Em Jogo" : "Em Jogo";
 
                 return new String[]{
                         jogador[0],

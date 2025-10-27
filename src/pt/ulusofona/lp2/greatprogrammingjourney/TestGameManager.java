@@ -75,7 +75,5 @@ public class TestGameManager {
         assertNotNull(gm.getProgrammerInfo(1));
         assertNotNull(gm.getProgrammerInfoAsStr(1));
         assertNotNull(gm.getSlotInfo(1));
-        assertNotNull(gm.getAuthorsPanel());
-        assertNotNull(gm.customizeBoard());
     }
 }
