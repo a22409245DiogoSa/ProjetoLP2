@@ -12,7 +12,7 @@ public class GameManager {
     EstadoJogo gameState;
     ArrayList<String>[] board;
     HashMap<String, Integer> positions;
-    int turnCount = 0;
+    int turnCount = 1;
 
     public GameManager() {}
 
@@ -24,10 +24,13 @@ public class GameManager {
             return false;
         }
 
-        if (worldSize < 2 * playerInfo.length) {
+        if (worldSize < (2 * playerInfo.length)) {
+            return false;
+            /*
             throw new IllegalArgumentException(
                     "O tamanho do tabuleiro deve ser pelo menos o dobro do número de jogadores."
-            );
+                    )
+             */
         }
 
         board = new ArrayList[boardSize];
@@ -161,12 +164,18 @@ public class GameManager {
                 Arrays.sort(linguagens);
                 String linguagensOrdenadas = String.join("; ", linguagens);
 
-                String estado = (pos < boardSize) ? "Em Jogo" : "Em Jogo";
+
+                String cor = jogador[3].toUpperCase();
+
+
+                String estado = (pos >= boardSize) ? "Em Jogo" : "Em Jogo";
+
 
                 return new String[]{
                         jogador[0],
                         jogador[1],
                         String.valueOf(pos),
+                        cor,
                         linguagensOrdenadas,
                         estado
                 };
