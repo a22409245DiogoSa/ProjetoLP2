@@ -45,14 +45,15 @@ public class TestGameManager {
     }
 
     @Test
-    public void testGameIsOverWhenPlayerReachesEnd() {
+    public void testGameIsOver() {
         GameManager gm = new GameManager();
         String[][] players = {
-                {"1", "Alice", "Java;C++", "Azul"}
+                {"1", "Alice", "Java;C++", "Azul"},
+                {"2", "Bob", "Python;Go", "Verde"}
         };
         gm.createInitialBoard(players, 5);
 
-        // Movimentos até a posição final
+        // Movimentos até à posição final
         gm.moveCurrentPlayer(4);
 
         assertTrue(gm.gameIsOver(), "O jogo deve terminar quando o jogador chega ao fim.");
@@ -60,15 +61,16 @@ public class TestGameManager {
         assertFalse(results.isEmpty(), "Os resultados devem estar disponíveis após o fim do jogo.");
     }
 
+
     @Test
     public void testAPIMethodsReturnValidValues() {
         GameManager gm = new GameManager();
         String[][] players = {
-                {"1", "Alice", "Java;C++", "Azul"}
+                {"1", "Alice", "Java;C++", "Azul"},
+                {"2", "Bob", "Python;Go", "Verde"}
         };
         gm.createInitialBoard(players, 6);
 
-        // Testa funções obrigatórias da API
         assertNotNull(gm.getImagePng(1));
         assertNotNull(gm.getProgrammerInfo(1));
         assertNotNull(gm.getProgrammerInfoAsStr(1));
