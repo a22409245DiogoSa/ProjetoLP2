@@ -175,7 +175,6 @@ public class GameManager {
                         jogador[0],
                         jogador[1],
                         String.valueOf(pos),
-                        cor,
                         linguagensOrdenadas,
                         estado
                 };
