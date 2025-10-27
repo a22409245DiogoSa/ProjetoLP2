@@ -221,7 +221,7 @@ public class GameManager {
         return new HashMap<>();
     }
 
-    String getWinnerName() {
+    public String getWinnerName() {
         for (Map.Entry<String, Integer> entry : positions.entrySet()) {
             if (entry.getValue() == boardSize) {
                 String idVencedor = entry.getKey();
@@ -230,6 +230,26 @@ public class GameManager {
                         return jogador[1];
                     }
                 }
+            }
+        }
+        return null;
+    }
+
+    public String getColor(int id) {
+        if (playerInfo == null) {
+            return null;
+        }
+
+        for (String[] player : playerInfo) {
+            if (player != null && player.length >= 4) {
+                    int playerId = Integer.parseInt(player[0]);
+                    if (playerId == id) {
+                        String cor = player[3].trim();
+
+                        if (!cor.isEmpty()) {
+                            return cor.substring(0, 1).toUpperCase() + cor.substring(1).toLowerCase();
+                        }
+                    }
             }
         }
         return null;
