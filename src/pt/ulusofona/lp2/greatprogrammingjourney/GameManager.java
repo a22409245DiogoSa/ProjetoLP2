@@ -20,7 +20,7 @@ public class GameManager {
         this.playerInfo = playerInfo;
         this.boardSize = worldSize;
 
-        if (playerInfo.length < 2 || playerInfo.length > 4){
+        if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4){
             return false;
         }
 
@@ -220,6 +220,23 @@ public class GameManager {
                 for (String[] jogador : playerInfo) {
                     if (jogador[0].equals(idVencedor)) {
                         return jogador[1];
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public String getColor(int id) {
+        String idStr = String.valueOf(id);
+        for (String[] jogador : playerInfo) {
+            if (jogador[0].equals(idStr)) {
+                if (jogador.length > 3) {
+                    String cor = jogador[3].trim();
+                    if (cor.length() > 1) {
+                        return cor.substring(0, 1).toUpperCase() + cor.substring(1).toLowerCase();
+                    } else {
+                        return cor.toUpperCase();
                     }
                 }
             }
