@@ -89,8 +89,8 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
 
         String id = jogador[0];
         String nome = jogador[1];
-        String linguagens = jogador[3];
-        String cor = jogador[2];
+        String linguagens = jogador[2];
+        String cor = jogador[3];
 
         if (id == null || nome == null || linguagens == null || cor == null) {
             return false;
@@ -221,7 +221,7 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
                     return null;
                 }
 
-                String[] linguagens = jogador[2].split(";");
+                String[] linguagens = jogador[3].split(";");
                 for (int i = 0; i < linguagens.length; i++) {
                     linguagens[i] = linguagens[i].trim();
                 }
