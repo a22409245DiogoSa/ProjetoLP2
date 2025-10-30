@@ -15,53 +15,7 @@ public class GameManager {
     int turnCount = 1;
 
     public GameManager() {}
-/*
-    public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
-        this.playerInfo = playerInfo;
-        this.boardSize = worldSize;
-        positions = new HashMap<>();
 
-        if (positions == null) {
-            return false;
-        }
-
-        if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4){
-            return false;
-        }
-
-        if (worldSize < (2 * playerInfo.length)) {
-            return false;
-            /*
-            throw new IllegalArgumentException(
-                    "O tamanho do tabuleiro deve ser pelo menos o dobro do número de jogadores."
-                    )
-
-
-        }
-
-        board = new ArrayList[boardSize];
-        for (int i = 0; i < boardSize; i++) {
-            board[i] = new ArrayList<>();
-        }
-
-
-        for (String[] jogador : playerInfo) {
-            String id = jogador[0];
-            board[0].add(id);
-            positions.put(id, 1);
-        }
-
-        String menorID = playerInfo[0][0];
-        for (String[] jogador : playerInfo) {
-            if (Integer.parseInt(jogador[0]) < Integer.parseInt(menorID)) {
-                menorID = jogador[0];
-            }
-        }
-        currentPlayer = menorID;
-        gameState = EstadoJogo.EM_ANDAMENTO;
-        return true;
-    }
-    ¨*/
 public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
     if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4) {
         return false;
@@ -228,14 +182,14 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
                 Arrays.sort(linguagens);
                 String linguagensOrdenadas = String.join("; ", linguagens);
 
-                String estado = (pos >= boardSize) ? "Em Jogo" : "Em Jogo";
+
 
                 return new String[]{
                         jogador[0],
                         jogador[1],
-                        String.valueOf(pos),
                         linguagensOrdenadas,
-                        estado
+                        jogador[3],
+                        String.valueOf(pos)
                 };
             }
         }
@@ -243,11 +197,43 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
     }
 
     public String getProgrammerInfoAsStr(int id) {
-        String[] info = getProgrammerInfo(id);
-        if (info == null) {
+
+        String idStr = String.valueOf(id);
+
+        if (positions == null) {
             return null;
         }
-        return String.join(" | ", info);
+
+        for (String[] jogador : playerInfo) {
+            if (jogador[0].equals(idStr)) {
+                Integer pos = positions.get(idStr);
+                if (pos == null) {
+                    return null;
+                }
+
+                String[] linguagens = jogador[2].split(";");
+                for (int i = 0; i < linguagens.length; i++) {
+                    linguagens[i] = linguagens[i].trim();
+                }
+                Arrays.sort(linguagens);
+                String linguagensOrdenadas = String.join("; ", linguagens);
+
+                String estado = (pos >= boardSize) ? "Em Jogo" : "Em Jogo";
+
+                String[] info = new String[]{
+                        jogador[0],
+                        jogador[1],
+                        String.valueOf(pos),
+                        linguagensOrdenadas,
+                        estado
+                };
+                if (info == null) {
+                    return null;
+                }
+                return String.join(" | ", info);
+            }
+        }
+        return null;
     }
 
     public String[] getSlotInfo(int position) {
