@@ -12,7 +12,7 @@ public class GameManager {
     EstadoJogo gameState;
     ArrayList<String>[] board;
     HashMap<String, Integer> positions;
-    int turnCount = 1;
+    int turnCount = 0;
 
     public GameManager() {}
 
