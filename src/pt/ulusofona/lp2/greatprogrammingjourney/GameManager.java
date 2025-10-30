@@ -71,6 +71,10 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
     }
 
     public boolean moveCurrentPlayer(int nrSpaces) {
+        if (gameState == EstadoJogo.TERMINADO) {
+            return false;
+        }
+
         if (positions == null) {
             return false;
         }
