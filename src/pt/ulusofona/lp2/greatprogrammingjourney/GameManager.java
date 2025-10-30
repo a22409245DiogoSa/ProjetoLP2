@@ -143,7 +143,7 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
             }
         }
 
-        restantes.sort((a, b) -> Integer.parseInt(a[1]) - Integer.parseInt(b[1]));
+        restantes.sort((a, b) -> Integer.parseInt(b[1]) - Integer.parseInt(a[1]));
         for (String[] r : restantes) {
             results.add(r[0] + " " + r[1]);
         }
