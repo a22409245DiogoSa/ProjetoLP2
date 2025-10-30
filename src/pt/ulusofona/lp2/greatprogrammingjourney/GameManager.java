@@ -95,7 +95,9 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
         board[posDestino - 1].add(currentPlayer);
         positions.put(currentPlayer, posDestino);
 
-        turnCount++;
+        if (gameState != EstadoJogo.TERMINADO) {
+            turnCount++;
+        }
 
         if (posDestino == boardSize) {
             gameState = EstadoJogo.TERMINADO;
