@@ -12,7 +12,7 @@ public class GameManager {
     EstadoJogo gameState;
     ArrayList<String>[] board;
     HashMap<String, Integer> positions;
-    int turnCount = 0;
+    int turnCount = 1;
 
     public GameManager() {}
 
@@ -91,6 +91,11 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
         board[posDestino - 1].add(currentPlayer);
         positions.put(currentPlayer, posDestino);
 
+        if (posDestino == boardSize) {
+            gameState = EstadoJogo.TERMINADO;
+            return true;
+        }
+
         int idxAtual = -1;
         for (int i = 0; i < playerInfo.length; i++) {
             if (playerInfo[i][0].equals(currentPlayer)) {
@@ -101,6 +106,7 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
 
         int proximoIdx = (idxAtual + 1) % playerInfo.length;
         currentPlayer = playerInfo[proximoIdx][0];
+
 
         turnCount++;
         return true;
