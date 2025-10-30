@@ -71,7 +71,6 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
     }
 
     public boolean moveCurrentPlayer(int nrSpaces) {
-
         if (positions == null) {
             return false;
         }
@@ -82,6 +81,7 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
 
         int posAtual = positions.get(currentPlayer);
         int posDestino = posAtual + nrSpaces;
+
         if (posDestino > boardSize) {
             int excesso = posDestino - boardSize;
             posDestino = boardSize - excesso;
@@ -91,10 +91,13 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
         board[posDestino - 1].add(currentPlayer);
         positions.put(currentPlayer, posDestino);
 
+        turnCount++;
+
         if (posDestino == boardSize) {
             gameState = EstadoJogo.TERMINADO;
             return true;
         }
+
 
         int idxAtual = -1;
         for (int i = 0; i < playerInfo.length; i++) {
@@ -107,8 +110,6 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
         int proximoIdx = (idxAtual + 1) % playerInfo.length;
         currentPlayer = playerInfo[proximoIdx][0];
 
-
-        turnCount++;
         return true;
     }
 
