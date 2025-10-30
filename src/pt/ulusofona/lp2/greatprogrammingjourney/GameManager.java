@@ -221,7 +221,7 @@ public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
                     return null;
                 }
 
-                String[] linguagens = jogador[3].split(";");
+                String[] linguagens = jogador[2].split(";");
                 for (int i = 0; i < linguagens.length; i++) {
                     linguagens[i] = linguagens[i].trim();
                 }
