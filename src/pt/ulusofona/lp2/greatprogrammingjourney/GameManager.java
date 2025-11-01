@@ -33,8 +33,12 @@ public class GameManager {
         this.players.clear();
 
         for (String[] jogador : playerInfo) {
-            if (jogador == null || jogador.length != 4) return false;
-            for (String campo : jogador) if (campo == null) return false;
+            if (jogador == null || jogador.length != 4){
+                return false;
+            }
+            for (String campo : jogador) if (campo == null){
+                return false;
+            }
 
             Player p = new Player(jogador[0], jogador[1], jogador[2], jogador[3]);
             players.add(p);
@@ -53,8 +57,12 @@ public class GameManager {
     }
 
     public boolean moveCurrentPlayer(int nrSpaces) {
-        if (gameState == EstadoJogo.TERMINADO || gameBoard == null) return false;
-        if (nrSpaces < 1 || nrSpaces > 6) return false;
+        if (gameState == EstadoJogo.TERMINADO || gameBoard == null) {
+            return false;
+        }
+        if (nrSpaces < 1 || nrSpaces > 6) {
+            return false;
+        }
 
         Player atual = getPlayerById(currentPlayer);
         gameBoard.movePlayer(atual, nrSpaces);
@@ -76,7 +84,10 @@ public class GameManager {
 
     public ArrayList<String> getGameResults() {
         ArrayList<String> results = new ArrayList<>();
-        if (!gameIsOver()) return results;
+
+        if (!gameIsOver()) {
+            return results;
+        }
 
         results.add("THE GREAT PROGRAMMING JOURNEY");
         results.add("");
@@ -86,35 +97,56 @@ public class GameManager {
         results.add("VENCEDOR");
 
         String vencedor = getWinnerName();
-        results.add(vencedor != null ? vencedor : "Desconhecido");
+        if (vencedor != null) {
+            results.add(vencedor);
+        } else {
+            results.add("Desconhecido");
+        }
+
         results.add("");
         results.add("RESTANTES");
 
         List<Player> restantes = new ArrayList<>();
-        for (Player p : players)
-            if (!p.getNome().equals(vencedor)) restantes.add(p);
+
+        for (Player p : players) {
+            if (!p.getNome().equals(vencedor)) {
+                restantes.add(p);
+            }
+        }
+
         restantes.sort((a, b) -> b.getPosicao() - a.getPosicao());
-        for (Player p : restantes)
+
+        for (Player p : restantes) {
             results.add(p.getNome() + " " + p.getPosicao());
+        }
+
         return results;
     }
 
     public String getWinnerName() {
-        for (Player p : players)
-            if (gameBoard.isAtEnd(p)) return p.getNome();
+        for (Player p : players) {
+            if (gameBoard.isAtEnd(p)) {
+                return p.getNome();
+            }
+        }
         return null;
     }
 
     public String[] getProgrammerInfo(int id) {
-        for (Player p : players)
-            if (Integer.parseInt(p.getId()) == id) return p.toArray();
+        for (Player p : players) {
+            if (Integer.parseInt(p.getId()) == id) {
+                return p.toArray();
+            }
+        }
         return null;
     }
 
     public String getProgrammerInfoAsStr(int id) {
-        for (Player p : players)
-            if (Integer.parseInt(p.getId()) == id)
+        for (Player p : players) {
+            if (Integer.parseInt(p.getId()) == id) {
                 return p.getInfoAsStr(boardSize);
+            }
+        }
         return null;
     }
 
@@ -123,7 +155,9 @@ public class GameManager {
     }
 
     public String getImagePng(int nrSquare) {
-        if (nrSquare < 1 || nrSquare > boardSize) return null;
+        if (nrSquare < 1 || nrSquare > boardSize) {
+            return null;
+        }
         return nrSquare == boardSize ? "final.png" : "imagem" + nrSquare + ".png";
     }
 
@@ -131,8 +165,11 @@ public class GameManager {
     public HashMap<String, String> customizeBoard() { return new HashMap<>(); }
 
     public Player getPlayerById(String id) {
-        for (Player p : players)
-            if (p.getId().equals(id)) return p;
+        for (Player p : players) {
+            if (p.getId().equals(id)) {
+                return p;
+            }
+        }
         return null;
     }
 }
