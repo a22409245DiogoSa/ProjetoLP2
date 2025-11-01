@@ -36,8 +36,10 @@ public class GameManager {
             if (jogador == null || jogador.length != 4){
                 return false;
             }
-            for (String campo : jogador) if (campo == null){
-                return false;
+            for (String campo : jogador) {
+                if (campo == null){
+                    return false;
+                }
             }
 
             Player p = new Player(jogador[0], jogador[1], jogador[2], jogador[3]);
