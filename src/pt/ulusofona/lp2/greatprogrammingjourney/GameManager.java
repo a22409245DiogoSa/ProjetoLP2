@@ -19,8 +19,8 @@ public class GameManager {
     Board gameBoard;
 
     public GameManager() {}
-/*
-    public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
+
+    public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
         if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4) {
             return false;
         }
@@ -55,12 +55,6 @@ public class GameManager {
         turnCount = 1;
         return true;
     }
-
-
- */
-    public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
-        return true;
-    };
 
     public int getCurrentPlayerID() {
         return Integer.parseInt(currentPlayer);
