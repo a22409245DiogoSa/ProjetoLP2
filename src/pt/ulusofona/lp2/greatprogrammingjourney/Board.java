@@ -54,4 +54,5 @@ public class Board {
     public HashMap<String, Integer> getPositions() {
         return positions;
     }
+
 }
