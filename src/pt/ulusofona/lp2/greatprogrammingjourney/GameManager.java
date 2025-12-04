@@ -56,6 +56,10 @@ public class GameManager {
         return true;
     }
 
+    public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
+        return createInitialBoard(playerInfo, worldSize, null);
+    }
+
     public int getCurrentPlayerID() {
         return Integer.parseInt(currentPlayer);
     }
