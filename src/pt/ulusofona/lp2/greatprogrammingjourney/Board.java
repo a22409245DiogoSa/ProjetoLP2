@@ -57,24 +57,24 @@ public class Board {
     }
 
     public String[] getSlotInfo(int position) {
-        if (position < 1 || position > boardSize) return null;
+        if (position < 1 || position > boardSize) {
+            return new String[]{"Empty", "", ""};
+        }
 
         List<String> ids = board[position - 1];
-
-        // Tipo: "Empty" / "Abyss" / "Tool"
         AbyssOrTool obj = objetos[position - 1];
-        String tipo;
+
+        String tipo = "Empty";
         String objIdStr = "";
-        if (obj == null) {
-            tipo = "Empty";
-        } else {
-            tipo = obj.getType();
+
+        if (obj != null) {
+            tipo = obj.getType();               // "Abyss" ou "Tool"
             objIdStr = String.valueOf(obj.getId());
         }
 
         String playersCSV = ids.isEmpty() ? "" : String.join(",", ids);
 
-        // Sempre retornar array de tamanho 3: [tipo, lista_de_players, id_do_objeto]
+        // Sempre retorna array de tamanho 3: [tipo, lista_de_players, id_do_objeto]
         return new String[]{tipo, playersCSV, objIdStr};
     }
 }
