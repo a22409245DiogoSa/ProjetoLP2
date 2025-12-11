@@ -19,8 +19,7 @@ public class Abyss extends AbyssOrTool {
 
     @Override
     public String apply(Player p, GameManager gm) {
-
-        // Ferramentas que anulam cada abismo
+        // Mapeamento de ferramentas que anulam cada abismo
         HashMap<Integer, String> anulacoes = new HashMap<>();
         anulacoes.put(0, "IDE");                       // Syntax Error
         anulacoes.put(1, "Testes Unitários");          // Logic Error
@@ -33,57 +32,46 @@ public class Abyss extends AbyssOrTool {
         anulacoes.put(8, "Programação Funcional");     // Infinite Loop
         anulacoes.put(9, "IDE");                       // Segfault
 
-        // Se o jogador tem a ferramenta correta → anula o abismo
         String ferramentaNecessaria = anulacoes.get(id);
-        if (ferramentaNecessaria != null &&
-                p.getFerramentas().contains(ferramentaNecessaria)) {
 
+        // Se o jogador possui a ferramenta → anula o abismo
+        if (ferramentaNecessaria != null && p.getFerramentas().contains(ferramentaNecessaria)) {
             p.getFerramentas().remove(ferramentaNecessaria);
             return "Avoided " + name + " using " + ferramentaNecessaria;
         }
 
-        // Sem ferramenta → aplicar efeito correspondente
+        // Sem ferramenta → aplica efeito do abismo
         switch (id) {
-
             case 0: // Syntax Error → recua 1 casa
                 p.setPosicao(Math.max(1, p.getPosicao() - 1));
-                return "Fell into " + name;
-
+                break;
             case 1: // Logic Error → perde 1 turno
                 gm.skipTurns(p, 1);
-                return "Fell into " + name;
-
+                break;
             case 2: // Exception → eliminado
                 gm.eliminatePlayer(p);
-                return "Fell into " + name;
-
+                break;
             case 3: // FileNotFound → recua 2 casas
                 p.setPosicao(Math.max(1, p.getPosicao() - 2));
-                return "Fell into " + name;
-
+                break;
             case 4: // Crash → perde 2 turnos
                 gm.skipTurns(p, 2);
-                return "Fell into " + name;
-
+                break;
             case 5: // Duplicated Code → vai para meio do tabuleiro
                 p.setPosicao(Math.max(1, gm.boardSize / 2));
-                return "Fell into " + name;
-
+                break;
             case 6: // Side Effects → volta ao início
                 p.setPosicao(1);
-                return "Fell into " + name;
-
+                break;
             case 7: // BSOD → eliminado
                 gm.eliminatePlayer(p);
-                return "Fell into " + name;
-
+                break;
             case 8: // Infinite Loop → perde 3 turnos
                 gm.skipTurns(p, 3);
-                return "Fell into " + name;
-
+                break;
             case 9: // Segmentation Fault → eliminado
                 gm.eliminatePlayer(p);
-                return "Fell into " + name;
+                break;
         }
 
         return "Fell into " + name;

@@ -58,31 +58,35 @@ public class Board {
 
     public String[] getSlotInfo(int position) {
         if (position < 1 || position > boardSize) {
-            return null; // posição inválida retorna null
+            return null;
         }
 
-        List<String> idsList = board[position - 1];
-        AbyssOrTool obj = objetos[position - 1];
-
-        // Concatena IDs dos jogadores manualmente
+        // jogadores na casa
+        List<String> ids = board[position - 1];
         String playersCSV = "";
-        if (!idsList.isEmpty()) {
+        if (!ids.isEmpty()) {
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < idsList.size(); i++) {
-                sb.append(idsList.get(i));
-                if (i < idsList.size() - 1) sb.append(",");
+            for (int i = 0; i < ids.size(); i++) {
+                sb.append(ids.get(i));
+                if (i < ids.size() - 1) sb.append(",");
             }
             playersCSV = sb.toString();
         }
 
-        // Descrição e tipo do objeto
-        String description = "";
-        String type = "";
+        // abismo ou ferramenta
+        AbyssOrTool obj = objetos[position - 1];
+        String tipoStr = "";
+        String objIdStr = "";
+
         if (obj != null) {
-            description = obj.getName(); // descrição amigável
-            type = (obj.getType().equals("Abyss") ? "A:" : "T:") + obj.getId();
+            objIdStr = String.valueOf(obj.getId());
+            if ("Abyss".equals(obj.getType())) {
+                tipoStr = "A:" + objIdStr;
+            } else if ("Tool".equals(obj.getType())) {
+                tipoStr = "T:" + objIdStr;
+            }
         }
 
-        return new String[]{playersCSV, description, type};
+        return new String[]{playersCSV, tipoStr, objIdStr};
     }
 }

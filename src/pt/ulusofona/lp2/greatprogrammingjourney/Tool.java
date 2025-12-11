@@ -13,7 +13,9 @@ public class Tool extends AbyssOrTool {
 
     @Override
     public String apply(Player p, GameManager gm) {
-        p.addFerramenta(name);
+        if (!p.getFerramentas().contains(name)) {
+            p.addFerramenta(name);
+        }
         return "Jogador agarrou " + name;
     }
 }
