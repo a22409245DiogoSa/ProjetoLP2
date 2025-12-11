@@ -66,26 +66,7 @@ public class GameManager {
     }
 
     public String reactToAbyssOrTool() {
-        // devolve null quando não há nada no slot (os testes esperam null)
-        if (gameBoard == null || currentPlayer == null) return null;
-        Player atual = getPlayerById(currentPlayer);
-        if (atual == null) return null;
-        int pos = atual.getPosicao();
-        AbyssOrTool obj = gameBoard.getObjectAt(pos);
-        if (obj == null) {
-            return null;
-        }
-
-        // Aplica o efeito (o método apply deve retornar uma String descritiva)
-        String resultado = obj.apply(atual, this);
-
-        // Se for uma ferramenta, presume-se que é apanhada e removida do tabuleiro
-        if ("Tool".equals(obj.getType())) {
-            gameBoard.removeObjectAt(pos);
-        }
-
-        // Para abismos, a lógica de eliminação/skip pode ser implementada por apply(...) ou por aqui.
-        return resultado;
+        return "";
     };
 
     public boolean moveCurrentPlayer(int nrSpaces) {
@@ -118,12 +99,6 @@ public class GameManager {
 
         // valida nrSpaces
         if (nrSpaces < 1 || nrSpaces > 6) {
-            return false;
-        }
-
-        // Regra: Programadores com "Assembly" não podem mover exactamente 3 casas
-        String langs = atual.getLinguagensOrdenadas();
-        if (langs != null && langs.contains("Assembly") && nrSpaces == 3) {
             return false;
         }
 
@@ -201,20 +176,7 @@ public class GameManager {
     }
 
     public String getProgrammersInfo() {
-        // Formato esperado pelos testes: "Nome : FerramentaMaisRecente | Outro : No tools"
-        if (players == null || players.isEmpty()) return "";
-
-        List<String> parts = new ArrayList<>();
-        for (Player p : players) {
-            List<String> tools = p.getFerramentas();
-            String toolDesc = "No tools";
-            if (tools != null && !tools.isEmpty()) {
-                // usa a ferramenta mais recente (última adicionada)
-                toolDesc = tools.get(tools.size() - 1);
-            }
-            parts.add(p.getNome() + " : " + toolDesc);
-        }
-        return String.join(" | ", parts);
+        return "";
     };
 
     public String[] getProgrammerInfo(int id) {
@@ -315,7 +277,6 @@ public class GameManager {
 
     public void loadGame(File file) throws
             InvalidFileException, FileNotFoundException {
-        // implementação omitida por agora — os principais testes quebravam por causa de getSlotInfo/ reactToAbyssOrTool/getProgrammersInfo
     }
 
     public boolean saveGame(File file) {
