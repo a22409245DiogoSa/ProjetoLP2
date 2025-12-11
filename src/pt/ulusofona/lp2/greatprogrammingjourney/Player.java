@@ -10,6 +10,7 @@ public class Player {
     String linguagens;
     String cor;
     int posicao = 1;
+    private boolean alive;
 
     List<String> ferramentas = new ArrayList<>();
 
@@ -18,6 +19,14 @@ public class Player {
         this.nome = nome;
         this.linguagens = linguagens;
         this.cor = cor;
+    }
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public void setAlive(boolean alive) {
+        this.alive = alive;
     }
 
     public String getId() { return id; }

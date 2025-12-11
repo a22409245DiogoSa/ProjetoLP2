@@ -67,13 +67,13 @@ public class GameManager {
 
     public String reactToAbyssOrTool() {
         Player p = getPlayerById(currentPlayer);
-        if (p == null) return "";
+        if (p == null) return null;
 
         int pos = p.getPosicao();
         AbyssOrTool obj = gameBoard.getObjectAt(pos);
 
         if (obj == null) {
-            return ""; // não há abismo ou ferramenta na posição
+            return null; // não há abismo ou ferramenta na posição
         }
 
         String resultado = obj.apply(p, this);
@@ -193,7 +193,18 @@ public class GameManager {
     }
 
     public String getProgrammersInfo() {
-        return "";
+        List<String> alivePlayersInfo = new ArrayList<>();
+
+        for (Player p : players) {
+            if (!p.isAlive()) continue;
+
+            List<String> tools = p.getFerramentas(); // Lista de ferramentas do jogador
+            String toolsStr = tools.isEmpty() ? "No tools" : String.join(";", tools);
+
+            alivePlayersInfo.add(p.getNome() + " : " + toolsStr);
+        }
+
+        return String.join(" | ", alivePlayersInfo);
     };
 
     public String[] getProgrammerInfo(int id) {
