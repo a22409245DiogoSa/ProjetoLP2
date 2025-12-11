@@ -13,8 +13,7 @@ public class Tool extends AbyssOrTool {
 
     @Override
     public String apply(Player p, GameManager gm) {
-        // Efeito será implementado mais tarde
         p.addFerramenta(name);
-        return "Picked up tool " + name;
+        return "Jogador agarrou " + name;
     }
 }

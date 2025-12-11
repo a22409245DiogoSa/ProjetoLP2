@@ -60,7 +60,21 @@ public class Board {
         if (position < 1 || position > boardSize) return null;
 
         List<String> ids = board[position - 1];
-        if (ids.isEmpty()) return new String[]{""};
-        return new String[]{String.join(",", ids)};
+
+        // Tipo: "Empty" / "Abyss" / "Tool"
+        AbyssOrTool obj = objetos[position - 1];
+        String tipo;
+        String objIdStr = "";
+        if (obj == null) {
+            tipo = "Empty";
+        } else {
+            tipo = obj.getType();
+            objIdStr = String.valueOf(obj.getId());
+        }
+
+        String playersCSV = ids.isEmpty() ? "" : String.join(",", ids);
+
+        // Sempre retornar array de tamanho 3: [tipo, lista_de_players, id_do_objeto]
+        return new String[]{tipo, playersCSV, objIdStr};
     }
 }
