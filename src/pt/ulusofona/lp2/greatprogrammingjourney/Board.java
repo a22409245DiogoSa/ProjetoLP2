@@ -7,14 +7,16 @@ import java.util.List;
 public class Board {
     ArrayList<String>[] board;
     HashMap<String, Integer> positions = new HashMap<>();
+    AbyssOrTool[] objetos;
     int boardSize;
 
     public Board(int boardSize) {
         this.boardSize = boardSize;
-        this.board = new ArrayList[boardSize];
-        for (int i = 0; i < boardSize; i++) {
-            board[i] = new ArrayList<>();
-        }
+
+        board = new ArrayList[boardSize];
+        for (int i = 0; i < boardSize; i++) board[i] = new ArrayList<>();
+
+        objetos = new AbyssOrTool[boardSize];
     }
 
     public void addPlayer(Player p) {
@@ -23,36 +25,42 @@ public class Board {
     }
 
     public void movePlayer(Player p, int nrSpaces) {
-        int posAtual = positions.get(p.getId());
-        int posDestino = posAtual + nrSpaces;
-        if (posDestino > boardSize) {
-            int excesso = posDestino - boardSize;
-            posDestino = boardSize - excesso;
+        int atual = positions.get(p.getId());
+        int destino = atual + nrSpaces;
+
+        if (destino > boardSize) {
+            int excesso = destino - boardSize;
+            destino = boardSize - excesso;
         }
 
-        board[posAtual - 1].remove(p.getId());
-        board[posDestino - 1].add(p.getId());
-        positions.put(p.getId(), posDestino);
-        p.setPosicao(posDestino);
+        board[atual - 1].remove(p.getId());
+        board[destino - 1].add(p.getId());
+        positions.put(p.getId(), destino);
+        p.setPosicao(destino);
     }
 
     public boolean isAtEnd(Player p) {
         return positions.get(p.getId()) == boardSize;
     }
 
+    public AbyssOrTool getObjectAt(int pos) {
+        if (pos < 1 || pos > boardSize) return null;
+        return objetos[pos - 1];
+    }
+
+    public void placeObject(AbyssOrTool obj) {
+        objetos[obj.getPosition() - 1] = obj;
+    }
+
+    public void removeObjectAt(int pos) {
+        objetos[pos - 1] = null;
+    }
+
     public String[] getSlotInfo(int position) {
-        if (position < 1 || position > boardSize) {
-            return null;
-        }
+        if (position < 1 || position > boardSize) return null;
+
         List<String> ids = board[position - 1];
-        if (ids.isEmpty()) {
-            return new String[]{""};
-        }
+        if (ids.isEmpty()) return new String[]{""};
         return new String[]{String.join(",", ids)};
     }
-
-    public HashMap<String, Integer> getPositions() {
-        return positions;
-    }
-
 }

@@ -1,6 +1,8 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Player {
     String id;
@@ -8,6 +10,8 @@ public class Player {
     String linguagens;
     String cor;
     int posicao = 1;
+
+    List<String> ferramentas = new ArrayList<>();
 
     public Player(String id, String nome, String linguagens, String cor) {
         this.id = id;
@@ -22,21 +26,38 @@ public class Player {
     public int getPosicao() { return posicao; }
     public void setPosicao(int pos) { this.posicao = pos; }
 
-    public String getLinguagensOrdenadas() {
-        String[] linguas = linguagens.split(";");
-        for (int i = 0; i < linguas.length; i++) {
-            linguas[i] = linguas[i].trim();
+    public void addFerramenta(String f) {
+        if (f != null && !ferramentas.contains(f)) {
+            ferramentas.add(f);
         }
-        Arrays.sort(linguas);
-        return String.join("; ", linguas);
+    }
+
+    public List<String> getFerramentas() {
+        return ferramentas;
+    }
+
+    public String getLinguagensOrdenadas() {
+        String[] arr = linguagens.split(";");
+        for (int i = 0; i < arr.length; i++) arr[i] = arr[i].trim();
+        Arrays.sort(arr);
+        return String.join("; ", arr);
     }
 
     public String[] toArray() {
-        return new String[]{id, nome, getLinguagensOrdenadas(), cor, String.valueOf(posicao)};
+        return new String[]{
+                id,
+                nome,
+                getLinguagensOrdenadas(),
+                cor,
+                String.valueOf(posicao)
+        };
     }
 
     public String getInfoAsStr(int boardSize) {
-        String estado = (posicao >= boardSize) ? "Em Jogo" : "Em Jogo";
-        return id + " | " + nome + " | " + posicao + " | " + getLinguagensOrdenadas() + " | " + estado;
+        String tools = ferramentas.isEmpty() ? "No tools"
+                : String.join("; ", ferramentas);
+
+        return id + " | " + nome + " | " + posicao + " | " + tools +
+                " | " + getLinguagensOrdenadas() + " | Em Jogo";
     }
 }
