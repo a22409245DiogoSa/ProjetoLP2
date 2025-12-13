@@ -15,6 +15,7 @@ public class GameManager {
     HashMap<String, Integer> positions;
     int turnCount = 1;
     private HashMap<String, Integer> skippedTurns = new HashMap<>();
+    private int lastDiceRoll = 0;
 
     List<Player> players = new ArrayList<>();
     Board gameBoard;
@@ -97,16 +98,16 @@ public class GameManager {
 
     private String getAbyssName(int id) {
         switch (id) {
-            case 0: return "Erro de Sintaxe";
-            case 1: return "Erro de Lógica";
+            case 0: return "Erro de sintaxe";
+            case 1: return "Erro de lógica";
             case 2: return "Exception";
             case 3: return "FileNotFoundException";
             case 4: return "Crash";
-            case 5: return "Código Duplicado";
-            case 6: return "Efeitos Secundários";
+            case 5: return "Código duplicado";
+            case 6: return "Efeitos secundários";
             case 7: return "Blue Screen of Death";
-            case 8: return "Ciclo Infinito";
-            case 9: return "Segmentation Fault";
+            case 8: return "Ciclo infinito";
+            case 9: return "Segmentation fault";
             default: return null;
         }
     }
@@ -203,12 +204,13 @@ public class GameManager {
         }
 
         // 3. Restrição de movimento por Linguagem (Assembly não pode mover 3 casas)
-        if (atual.getLinguagens() != null && atual.getLinguagens().equalsIgnoreCase("Assembly") && nrSpaces == 3) {
+        if (atual.getLinguagens() != null && atual.getLinguagens().equalsIgnoreCase("Assembly") && nrSpaces >= 3) {
             return false;
         }
 
         // 4. Movimento normal
         gameBoard.movePlayer(atual, nrSpaces);
+        this.lastDiceRoll = nrSpaces;
         turnCount++;
 
         // 5. Verifica se chegou ao fim (Fim do Tabuleiro)
@@ -312,12 +314,24 @@ public class GameManager {
     }
 
     public String getProgrammerInfoAsStr(int id) {
-        for (Player p : players) {
-            if (Integer.parseInt(p.getId()) == id) {
-                return p.getInfoAsStr(boardSize);
-            }
+        Player p = getPlayerById(String.valueOf(id));
+        if (p == null) return null;
+
+        String tools = p.getFerramentas().isEmpty() ? "No tools"
+                : String.join("; ", p.getFerramentas());
+
+        String status;
+        if (!p.isAlive()) {
+            status = "Derrotado"; // Para Exception, BSOD, Segmentation Fault (Test 010)
+        } else if (skippedTurns.containsKey(p.getId()) && skippedTurns.get(p.getId()) > 0) {
+            status = "Preso"; // Para Crash e Ciclo Infinito (Test 021, 023)
+        } else {
+            status = "Em Jogo";
         }
-        return null;
+
+        // A tua classe Player já tem getLinguagensOrdenadas()
+        return p.getId() + " | " + p.getNome() + " | " + p.getPosicao() + " | " + tools +
+                " | " + p.getLinguagensOrdenadas() + " | " + status;
     }
 
     public String[] getSlotInfo(int position) {
@@ -426,6 +440,13 @@ public class GameManager {
         p.setPosicao(newPos);
     }
 
+    public List<String> getPlayersInSlot(int pos) {
+        return gameBoard.getPlayersInSlot(pos);
+    }
+
+    public int getLastDiceRoll() {
+        return lastDiceRoll;
+    }
 }
 
 

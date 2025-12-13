@@ -14,6 +14,9 @@ public class Player {
 
     List<String> ferramentas = new ArrayList<>();
 
+    private int lastPosition = 1;
+    private int secondLastPosition = 1;
+
     public Player(String id, String nome, String linguagens, String cor) {
         this.id = id;
         this.nome = nome;
@@ -33,7 +36,11 @@ public class Player {
     public String getNome() { return nome; }
     public String getCor() { return cor; }
     public int getPosicao() { return posicao; }
-    public void setPosicao(int pos) { this.posicao = pos; }
+    public void setPosicao(int pos) {
+        this.secondLastPosition = this.lastPosition;
+        this.lastPosition = this.posicao; // A posição atual antes de mudar
+        this.posicao = pos;
+    }
 
     public void addFerramenta(String f) {
         if (f != null && !ferramentas.contains(f)) {
@@ -73,4 +80,7 @@ public class Player {
     public String getLinguagens() {
         return linguagens;
     }
+
+    public int getLastPosition() { return lastPosition; }
+    public int getSecondLastPosition() { return secondLastPosition; }
 }

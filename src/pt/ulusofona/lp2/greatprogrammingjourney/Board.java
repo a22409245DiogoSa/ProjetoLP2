@@ -57,8 +57,9 @@ public class Board {
     }
 
     public String[] getSlotInfo(int position) {
-        if (position < 1 || position > boardSize) {
-            return null;
+
+        if (board == null || position < 1 || position > boardSize) {
+            return new String[]{"", "", ""}; // Retorna array vazio em vez de null
         }
 
         // 1. Jogadores na Casa (playersCSV está correto)
@@ -111,5 +112,10 @@ public class Board {
 
         // 3. Atualiza o mapa de posições
         positions.put(p.getId(), newPos);
+    }
+
+    public List<String> getPlayersInSlot(int pos) {
+        if (pos < 1 || pos > boardSize) return new ArrayList<>();
+        return board[pos - 1];
     }
 }

@@ -5,6 +5,7 @@ import pt.ulusofona.lp2.greatprogrammingjourney.GameManager;
 import pt.ulusofona.lp2.greatprogrammingjourney.Player;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class Abyss extends AbyssOrTool {
 
@@ -19,7 +20,6 @@ public class Abyss extends AbyssOrTool {
 
     @Override
     public String apply(Player p, GameManager gm) {
-        // 1. Mapeamento de Ferramentas (AGORA COM LÓGICA DEFINIDA)
         HashMap<Integer, String> anulacoes = new HashMap<>();
         anulacoes.put(0, "IDE");
         anulacoes.put(1, "Testes Unitários");
@@ -36,46 +36,66 @@ public class Abyss extends AbyssOrTool {
 
         // 2. Tenta Anular o Abismo
         if (ferramentaNecessaria != null && p.getFerramentas().contains(ferramentaNecessaria)) {
-            // Consome a ferramenta
             p.getFerramentas().remove(ferramentaNecessaria);
-
-            // Retorna a mensagem pedida: "<Nome do Abismo> anulado por <Nome da Ferramenta>"
             return this.name + " anulado por " + ferramentaNecessaria;
         }
 
-        // 3. Aplica Efeito do Abismo (Se não foi anulado)
+        // 3. Aplica Efeito do Abismo (REGRAS FINAIS)
         int novaPosicao = p.getPosicao();
 
         switch (id) {
             case 0: // Syntax Error → recua 1 casa
                 novaPosicao = Math.max(1, p.getPosicao() - 1);
                 break;
-            case 1: // Logic Error → Recua 2 casas (Ajuste para testes)
-                novaPosicao = Math.max(1, p.getPosicao() - 2);
+
+            case 1: // Logic Error → Recua N casas = floor(dado / 2) E perde 1 turno
+                int lastRoll = gm.getLastDiceRoll();
+                int recuo = (int) Math.floor(lastRoll / 2.0);
+
+                novaPosicao = Math.max(1, p.getPosicao() - recuo);
+                gm.skipTurns(p, 1); // PERDE O TURNO SEGUINTE
                 break;
-            case 2: // Exception → eliminado
-            case 7: // BSOD → eliminado
-            case 9: // Segmentation Fault → eliminado
-                gm.eliminatePlayer(p);
-                // Se eliminado, não precisa de atualizar a posição
-                return "Caiu em " + name;
-            case 3: // FileNotFound → Recua 3 casas (Ajuste para testes)
+
+            case 2: // Exception → perde 1 turno
+                gm.skipTurns(p, 1); // PERDE O TURNO SEGUINTE
+                break;
+
+            case 3: // FileNotFound → Recua 3 casas (Mantida a interpretação)
                 novaPosicao = Math.max(1, p.getPosicao() - 3);
                 break;
-            case 4: // Crash → perde 2 turnos
-                gm.skipTurns(p, 2);
-                break;
-            case 5: // Duplicated Code → vai para meio do tabuleiro
-                novaPosicao = Math.max(1, gm.boardSize / 2);
-                break;
-            case 6: // Side Effects → volta ao início
+
+            case 4: // Crash → volta à primeira casa (posição 1). **NÃO PERDE TURNO**
                 novaPosicao = 1;
                 break;
-            case 8: // Infinite Loop → perde 3 turnos
+
+            case 5: // Código Duplicado → recua para a posição anterior E perde 1 turno
+                novaPosicao = p.getLastPosition();
+                gm.skipTurns(p, 1); // PERDE O TURNO SEGUINTE
+                break;
+
+            case 6: // Efeitos Secundários → recua para a posição de 2 movimentos atrás E perde 1 turno
+                novaPosicao = p.getSecondLastPosition();
+                gm.skipTurns(p, 1); // PERDE O TURNO SEGUINTE
+                break;
+
+            case 7: // BSOD → perde imediatamente o jogo
+                gm.eliminatePlayer(p);
+                return "Caiu em " + name;
+
+            case 8: // Ciclo Infinito → perde 3 turnos
                 gm.skipTurns(p, 3);
                 break;
-            default:
-                // Nenhum efeito ou efeito desconhecido
+
+            case 9: // Segmentation Fault → Se >= 2 jogadores, todos recuam 3 casas
+                List<String> playersInSlot = gm.getPlayersInSlot(p.getPosicao());
+                if (playersInSlot != null && playersInSlot.size() >= 2) {
+                    for (String playerId : playersInSlot) {
+                        Player targetP = gm.getPlayerById(playerId);
+                        if (targetP != null) {
+                            gm.setPlayerPosition(targetP, Math.max(1, targetP.getPosicao() - 3));
+                        }
+                    }
+                }
                 break;
         }
 
@@ -84,7 +104,6 @@ public class Abyss extends AbyssOrTool {
             gm.setPlayerPosition(p, novaPosicao);
         }
 
-        // Retorna a mensagem de queda
         return "Caiu em " + name;
     }
 }
