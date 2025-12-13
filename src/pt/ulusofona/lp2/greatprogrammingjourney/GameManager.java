@@ -199,13 +199,10 @@ public class GameManager {
         String linguagem = atual.getLinguagens();
 
 
-            if (linguagem.equalsIgnoreCase("Assembly") && nrSpaces >= 3) {
+            if ((linguagem.equalsIgnoreCase("Assembly") && nrSpaces >= 3) ||(linguagem.trim().equalsIgnoreCase("C") && nrSpaces >= 4)) {
                 return false;
             }
 
-            if (linguagem.trim().equalsIgnoreCase("C") && nrSpaces >= 4) {
-                return false;
-            }
 
 
         // 4. Movimento normal
@@ -559,9 +556,21 @@ public class GameManager {
         }
 
         // 4. Se o currentPlayer for inválido/eliminado, reset para o primeiro jogador ativo
-        if (currentPlayer == null || !players.stream().anyMatch(p -> p.getId().equals(currentPlayer) && p.isAlive())) {
-            Optional<Player> firstActive = players.stream().filter(Player::isAlive).min(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
-            currentPlayer = firstActive.map(Player::getId).orElse(null);
+        boolean currentPlayerIsValid = false;
+        Player firstActive = null;
+        for (Player p : players) {
+            if (p.getId().equals(currentPlayer) && p.isAlive()) {
+                currentPlayerIsValid = true;
+            }
+
+            // Procura o primeiro jogador ativo (ordenado por ID, pois 'players' está ordenado)
+            if (p.isAlive() && firstActive == null) {
+                firstActive = p;
+            }
+        }
+
+        if (!currentPlayerIsValid) {
+            currentPlayer = (firstActive != null) ? firstActive.getId() : null;
         }
     }
 
