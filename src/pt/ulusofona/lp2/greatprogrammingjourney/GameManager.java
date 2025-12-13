@@ -3,6 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 import javax.swing.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.util.*;
 import java.util.List;
 
@@ -204,8 +205,16 @@ public class GameManager {
         }
 
         // 3. Restrição de movimento por Linguagem (Assembly não pode mover 3 casas)
-        if (atual.getLinguagens() != null && atual.getLinguagens().equalsIgnoreCase("Assembly") && nrSpaces >= 3) {
-            return false;
+        String linguagem = atual.getLinguagens();
+
+        if (linguagem != null) {
+            if (linguagem.equalsIgnoreCase("Assembly") && nrSpaces >= 3) {
+                return false;
+            }
+            // NOVA REGRA: C pode ir até 3.
+            if (linguagem.equalsIgnoreCase("C") && nrSpaces >= 4) {
+                return false;
+            }
         }
 
         // 4. Movimento normal
@@ -420,14 +429,184 @@ public class GameManager {
         gameState = EstadoJogo.TERMINADO;
     }
 
-    public void loadGame(File file) throws
-            InvalidFileException, FileNotFoundException {
+    public void loadGame(File file) throws InvalidFileException, FileNotFoundException {
+        // Assume que InvalidFileException é uma classe customizada simples
+
+        // 0. Limpa o estado atual antes de carregar
+        players.clear();
+        skippedTurns.clear();
+        gameBoard = null;
+        currentPlayer = null;
+        gameState = EstadoJogo.EM_ANDAMENTO;
+        turnCount = 1;
+        lastDiceRoll = 0;
+        boardSize = 0;
+
+        // 1. Lê o ficheiro
+        List<String> lines = new ArrayList<>();
+        try (Scanner scanner = new Scanner(file)) {
+            while (scanner.hasNextLine()) {
+                lines.add(scanner.nextLine());
+            }
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("Ficheiro não encontrado: " + file.getName());
+        }
+
+        if (lines.isEmpty() || !lines.get(0).equals("GPJ_SAVE_FILE")) {
+            throw new InvalidFileException("Cabeçalho de ficheiro inválido.");
+        }
+
+        // Listas auxiliares para guardar dados até o boardSize ser conhecido
+        List<String[]> playerData = new ArrayList<>();
+        List<String[]> objectData = new ArrayList<>();
+
+        for (String line : lines) {
+            if (line.isEmpty() || line.startsWith("GPJ_SAVE_FILE")) continue;
+
+            String[] parts = line.split("\\|", -1);
+            String type = parts[0];
+
+            try {
+                switch (type) {
+                    case "GS":
+                        // GS|<boardSize>|<turnCount>|<currentPlayer>|<gameState>|<lastDiceRoll>
+                        if (parts.length != 6) throw new InvalidFileException("Linha GS corrompida.");
+                        boardSize = Integer.parseInt(parts[1]);
+                        turnCount = Integer.parseInt(parts[2]);
+                        currentPlayer = parts[3];
+                        gameState = EstadoJogo.valueOf(parts[4]);
+                        lastDiceRoll = Integer.parseInt(parts[5]);
+                        gameBoard = new Board(boardSize);
+                        break;
+                    case "ST":
+                        // ST|<PlayerID>|<TurnsLeft>
+                        if (parts.length != 3) throw new InvalidFileException("Linha ST corrompida.");
+                        skippedTurns.put(parts[1], Integer.parseInt(parts[2]));
+                        break;
+                    case "P":
+                        // P|<ID>|<Nome>|<Linguagens>|<Cor>|<Posicao>|<Alive>|<lastPosition>|<secondLastPosition>|<Tool1;Tool2;...>
+                        if (parts.length != 10) throw new InvalidFileException("Linha P corrompida.");
+                        playerData.add(parts);
+                        break;
+                    case "O":
+                        // O|<Type:A/T>|<SubtypeID>|<Position>
+                        if (parts.length != 4) throw new InvalidFileException("Linha O corrompida.");
+                        objectData.add(parts);
+                        break;
+                    default:
+                        // Ignorar linhas desconhecidas
+                }
+            } catch (Exception e) {
+                throw new InvalidFileException("Corrupção de dados na linha: " + line);
+            }
+        }
+
+        if (boardSize == 0) throw new InvalidFileException("Tamanho do tabuleiro não definido.");
+
+        // 2. Recriação dos Jogadores e adição ao Board
+        for (String[] data : playerData) {
+            String id = data[1];
+            String nome = data[2];
+            String linguagens = data[3];
+            String cor = data[4];
+            int posicao = Integer.parseInt(data[5]);
+            boolean alive = Boolean.parseBoolean(data[6]);
+            int lastPos = Integer.parseInt(data[7]);
+            int secondLastPos = Integer.parseInt(data[8]);
+            String toolsStr = data[9];
+
+            Player p = new Player(id, nome, linguagens, cor);
+            p.setAlive(alive);
+
+            // Usar setters de "Load"
+            p.setPosicaoForLoad(posicao);
+            p.setLastPosition(lastPos);
+            p.setSecondLastPosition(secondLastPos);
+
+            if (!toolsStr.isEmpty()) {
+                p.setFerramentas(new ArrayList<>(Arrays.asList(toolsStr.split(";"))));
+            }
+
+            players.add(p);
+            // Adiciona o jogador ao Board na posição correta
+            gameBoard.addPlayerForLoad(p, posicao);
+        }
+
+        // Ordenar jogadores por ID
+        players.sort(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
+
+        // 3. Recriação dos Objetos do Tabuleiro
+        for (String[] data : objectData) {
+            String typeChar = data[1];
+            int idSubtype = Integer.parseInt(data[2]);
+            int position = Integer.parseInt(data[3]);
+
+            AbyssOrTool obj = null;
+            if (typeChar.equals("A")) {
+                String name = getAbyssName(idSubtype);
+                if (name == null) throw new InvalidFileException("ID de Abismo inválido no ficheiro.");
+                obj = new Abyss(idSubtype, name, position);
+            } else if (typeChar.equals("T")) {
+                String name = getToolName(idSubtype);
+                if (name == null) throw new InvalidFileException("ID de Ferramenta inválido no ficheiro.");
+                obj = new Tool(idSubtype, name, position);
+            }
+
+            if (obj != null) {
+                gameBoard.placeObject(obj);
+            }
+        }
+
+        // 4. Se o currentPlayer for inválido/eliminado, reset para o primeiro jogador ativo
+        if (currentPlayer == null || !players.stream().anyMatch(p -> p.getId().equals(currentPlayer) && p.isAlive())) {
+            Optional<Player> firstActive = players.stream().filter(Player::isAlive).min(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
+            currentPlayer = firstActive.map(Player::getId).orElse(null);
+        }
     }
 
     public boolean saveGame(File file) {
-        return true;
-    }
+        try (FileWriter writer = new FileWriter(file)) {
+            // 1. Cabeçalho
+            writer.write("GPJ_SAVE_FILE\n");
 
+            // 2. Estado Global
+            // GS|<boardSize>|<turnCount>|<currentPlayer>|<gameState>|<lastDiceRoll>
+            String gameStateStr = gameState.name();
+            String globalStateLine = "GS|" + boardSize + "|" + turnCount + "|" + currentPlayer + "|" + gameStateStr + "|" + lastDiceRoll + "\n";
+            writer.write(globalStateLine);
+
+            // 3. Turnos Saltados
+            for (Map.Entry<String, Integer> entry : skippedTurns.entrySet()) {
+                // ST|<PlayerID>|<TurnsLeft>
+                writer.write("ST|" + entry.getKey() + "|" + entry.getValue() + "\n");
+            }
+
+            // 4. Jogadores
+            for (Player p : players) {
+                // P|<ID>|<Nome>|<Linguagens>|<Cor>|<Posicao>|<Alive>|<lastPosition>|<secondLastPosition>|<Tool1;Tool2;...>
+                String toolsStr = String.join(";", p.getFerramentas());
+                String playerLine = "P|" + p.getId() + "|" + p.getNome() + "|" + p.getLinguagens() + "|" + p.getCor() + "|" +
+                        p.getPosicao() + "|" + p.isAlive() + "|" + p.getLastPosition() + "|" + p.getSecondLastPosition() + "|" + toolsStr + "\n";
+                writer.write(playerLine);
+            }
+
+            // 5. Objetos do Tabuleiro
+            if (gameBoard != null) {
+                for (int i = 1; i <= boardSize; i++) {
+                    AbyssOrTool obj = gameBoard.getObjectAt(i);
+                    if (obj != null) {
+                        // O|<Type:A/T>|<SubtypeID>|<Position>
+                        String typeChar = "Abyss".equals(obj.getType()) ? "A" : "T";
+                        writer.write("O|" + typeChar + "|" + obj.getId() + "|" + obj.getPosition() + "\n");
+                    }
+                }
+            }
+
+            return true;
+        } catch (java.io.IOException e) {
+            return false;
+        }
+    }
     public void setPlayerPosition(Player p, int newPos) {
         if (p == null || gameBoard == null) return;
 

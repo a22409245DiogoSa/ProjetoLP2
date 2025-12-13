@@ -118,4 +118,14 @@ public class Board {
         if (pos < 1 || pos > boardSize) return new ArrayList<>();
         return board[pos - 1];
     }
+
+    public void addPlayerForLoad(Player p, int pos) {
+        if (pos < 1 || pos > boardSize) pos = 1; // Sanidade
+        int index = pos - 1;
+
+        if (board[index] == null) board[index] = new ArrayList<>();
+
+        board[index].add(p.getId());
+        positions.put(p.getId(), pos);
+    }
 }

@@ -53,11 +53,10 @@ public class Abyss extends AbyssOrTool {
                 int recuo = (int) Math.floor(lastRoll / 2.0);
 
                 novaPosicao = Math.max(1, p.getPosicao() - recuo);
-                gm.skipTurns(p, 1); // PERDE O TURNO SEGUINTE
+                // REMOVIDO: gm.skipTurns(p, 1); // Não perdem turno
                 break;
 
-            case 2: // Exception → perde 1 turno
-                gm.skipTurns(p, 1); // PERDE O TURNO SEGUINTE
+            case 2: // Exception → perde 1 turno// PERDE O TURNO SEGUINTE
                 break;
 
             case 3: // FileNotFound → Recua 3 casas (Mantida a interpretação)
@@ -70,12 +69,12 @@ public class Abyss extends AbyssOrTool {
 
             case 5: // Código Duplicado → recua para a posição anterior E perde 1 turno
                 novaPosicao = p.getLastPosition();
-                gm.skipTurns(p, 1); // PERDE O TURNO SEGUINTE
+                // REMOVIDO: gm.skipTurns(p, 1); // Não perdem turno
                 break;
 
             case 6: // Efeitos Secundários → recua para a posição de 2 movimentos atrás E perde 1 turno
                 novaPosicao = p.getSecondLastPosition();
-                gm.skipTurns(p, 1); // PERDE O TURNO SEGUINTE
+                // REMOVIDO: gm.skipTurns(p, 1); // Não perdem turno
                 break;
 
             case 7: // BSOD → perde imediatamente o jogo
@@ -88,18 +87,28 @@ public class Abyss extends AbyssOrTool {
 
             case 9: // Segmentation Fault → Se >= 2 jogadores, todos recuam 3 casas
                 List<String> playersInSlot = gm.getPlayersInSlot(p.getPosicao());
+
+                // Verifica se há dois ou mais jogadores na casa
                 if (playersInSlot != null && playersInSlot.size() >= 2) {
+
+                    // Aplica o recuo de 3 casas a TODOS os jogadores na casa
                     for (String playerId : playersInSlot) {
                         Player targetP = gm.getPlayerById(playerId);
                         if (targetP != null) {
-                            gm.setPlayerPosition(targetP, Math.max(1, targetP.getPosicao() - 3));
+                            // Calcula a nova posição (recua 3, mínimo é 1)
+                            int newPosForTarget = Math.max(1, targetP.getPosicao() - 3);
+
+                            // Atualiza a posição centralizadamente
+                            gm.setPlayerPosition(targetP, newPosForTarget);
                         }
                     }
                 }
-                break;
+                // Se só houver 1 jogador, nada acontece.
+                break; // A posição do jogador 'p' já foi tratada dentro do loop, ou não mudou.
         }
 
         // Se houve alteração de posição (e não foi eliminado/saltou turno), atualiza.
+        // NOTA: Esta secção só irá executar se o case não tiver break e se novaPosicao for diferente.
         if (novaPosicao != p.getPosicao()) {
             gm.setPlayerPosition(p, novaPosicao);
         }

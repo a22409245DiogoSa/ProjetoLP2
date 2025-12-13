@@ -83,4 +83,15 @@ public class Player {
 
     public int getLastPosition() { return lastPosition; }
     public int getSecondLastPosition() { return secondLastPosition; }
+
+    public void setPosicaoForLoad(int pos) {
+        this.posicao = pos;
+    }
+
+    public void setLastPosition(int lastPosition) { this.lastPosition = lastPosition; }
+    public void setSecondLastPosition(int secondLastPosition) { this.secondLastPosition = secondLastPosition; }
+
+    public void setFerramentas(List<String> ferramentas) {
+        this.ferramentas = ferramentas;
+    }
 }
