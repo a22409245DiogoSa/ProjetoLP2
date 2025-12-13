@@ -61,7 +61,7 @@ public class Board {
             return null;
         }
 
-        // jogadores na casa
+        // 1. Jogadores na Casa (playersCSV está correto)
         List<String> ids = board[position - 1];
         String playersCSV = "";
         if (!ids.isEmpty()) {
@@ -73,20 +73,43 @@ public class Board {
             playersCSV = sb.toString();
         }
 
-        // abismo ou ferramenta
+        // 2. Abismo ou Ferramenta
         AbyssOrTool obj = objetos[position - 1];
-        String tipoStr = "";
-        String objIdStr = "";
+        String objNameStr = ""; // O nome do objeto (Ex: "Erro de Sintaxe")
+        String tipoIdStr = "";  // O Tipo:ID (Ex: "A:0")
 
         if (obj != null) {
-            objIdStr = String.valueOf(obj.getId());
+            objNameStr = obj.getName();
+            String objIdStr = String.valueOf(obj.getId());
+
             if ("Abyss".equals(obj.getType())) {
-                tipoStr = "A:" + objIdStr;
+                tipoIdStr = "A:" + objIdStr;
             } else if ("Tool".equals(obj.getType())) {
-                tipoStr = "T:" + objIdStr;
+                tipoIdStr = "T:" + objIdStr;
             }
         }
 
-        return new String[]{playersCSV, tipoStr, objIdStr};
+        // Retorna no formato CORRETO e esperado pelo teste:
+        // [Jogadores na Casa, Nome do Objeto, Tipo:ID]
+        return new String[]{playersCSV, objNameStr, tipoIdStr};
+    }
+
+    public void updatePlayerPosition(Player p, int oldPos, int newPos) {
+        // As posições são 1-based, o array é 0-based.
+        int oldIndex = oldPos - 1;
+        int newIndex = newPos - 1;
+
+        // 1. Remove da posição antiga
+        if (oldIndex >= 0 && oldIndex < boardSize) {
+            board[oldIndex].remove(p.getId());
+        }
+
+        // 2. Adiciona na nova posição
+        if (newIndex >= 0 && newIndex < boardSize) {
+            board[newIndex].add(p.getId());
+        }
+
+        // 3. Atualiza o mapa de posições
+        positions.put(p.getId(), newPos);
     }
 }

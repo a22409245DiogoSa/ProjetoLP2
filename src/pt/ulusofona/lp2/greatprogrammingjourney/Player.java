@@ -69,4 +69,8 @@ public class Player {
         return id + " | " + nome + " | " + posicao + " | " + tools +
                 " | " + getLinguagensOrdenadas() + " | Em Jogo";
     }
+
+    public String getLinguagens() {
+        return linguagens;
+    }
 }

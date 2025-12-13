@@ -32,10 +32,10 @@ public class GameManager {
         // 2. Inicializar variáveis de estado
         this.playerInfo = playerInfo;
         this.boardSize = worldSize;
-        this.positions = new HashMap<>(); // Nota: A classe Board já gere posições, mas se o GM precisar, mantém.
+        this.positions = new HashMap<>();
         this.gameBoard = new Board(worldSize);
         this.players.clear();
-        this.skippedTurns.clear(); // Limpar turnos saltados de jogos anteriores
+        this.skippedTurns.clear();
 
         // 3. Criar Jogadores
         for (String[] jogador : playerInfo) {
@@ -45,7 +45,6 @@ public class GameManager {
             }
 
             Player p = new Player(jogador[0], jogador[1], jogador[2], jogador[3]);
-            // IMPORTANTE: Garantir que o jogador começa "vivo"
             p.setAlive(true);
             players.add(p);
             gameBoard.addPlayer(p);
@@ -57,7 +56,7 @@ public class GameManager {
         gameState = EstadoJogo.EM_ANDAMENTO;
         turnCount = 1;
 
-        // 4. Criar Abismos e Ferramentas (NOVO)
+        // 4. Criar Abismos e Ferramentas
         if (abyssesAndTools != null) {
             for (String[] item : abyssesAndTools) {
                 if (item == null || item.length != 3) return false;
@@ -67,19 +66,25 @@ public class GameManager {
                     int idSubtype = Integer.parseInt(item[1]);
                     int position = Integer.parseInt(item[2]);
 
-                    // Validar posição
+                    // 4.1. Validações de Posição/Objeto
                     if (position < 1 || position > worldSize) return false;
+                    if (gameBoard.getObjectAt(position) != null) return false; // Apenas 1 objeto por casa
 
+                    // 4.2. Colocação do Objeto
                     if (type == 0) {
                         // É um Abismo
                         String name = getAbyssName(idSubtype);
+                        if (name == null) return false; // ID de Abismo inválido
                         Abyss abyss = new Abyss(idSubtype, name, position);
                         gameBoard.placeObject(abyss);
                     } else if (type == 1) {
                         // É uma Ferramenta
                         String name = getToolName(idSubtype);
+                        if (name == null) return false; // ID de Ferramenta inválido
                         Tool tool = new Tool(idSubtype, name, position);
                         gameBoard.placeObject(tool);
+                    } else {
+                        return false; // Tipo de objeto inválido
                     }
                 } catch (NumberFormatException e) {
                     return false; // Se os dados não forem números válidos
@@ -102,7 +107,7 @@ public class GameManager {
             case 7: return "Blue Screen of Death";
             case 8: return "Ciclo Infinito";
             case 9: return "Segmentation Fault";
-            default: return "Unknown Abyss";
+            default: return null;
         }
     }
 
@@ -114,7 +119,7 @@ public class GameManager {
             case 3: return "Tratamento de Excepções";
             case 4: return "IDE";
             case 5: return "Ajuda Do Professor";
-            default: return "Unknown Tool";
+            default: return null;
         }
     }
 
@@ -167,38 +172,38 @@ public class GameManager {
             return false;
         }
 
-        // Se currentPlayer é nulo (todos eliminados?) - falha
         if (currentPlayer == null) return false;
 
-        // 1. Obter jogador atual e verificar se está vivo (isAlive deve ser usado, mas vamos manter
-        // a verificação por ID para consistência com o que já tens)
         Player atual = getPlayerById(currentPlayer);
-        if (atual == null) {
-            // Se o jogador atual não existe (foi eliminado noutra fase do turno, por exemplo)
-            // Tentamos avançar o turno e falhar o movimento.
+
+        // Se o jogador atual já tiver sido eliminado (não deveria acontecer, mas por segurança)
+        if (atual == null || !atual.isAlive()) {
             advanceToNextPlayer();
             return false;
         }
 
-        // 2. Lógica de Turnos Saltados (Skip Turns)
+        // 1. Lógica de Turnos Saltados (Skip Turns)
         Integer skips = skippedTurns.getOrDefault(atual.getId(), 0);
         if (skips > 0) {
             // Decrementa e passa a vez sem mover
             skippedTurns.put(atual.getId(), skips - 1);
 
-            // Remove do mapa se chegou a zero
             if (skippedTurns.get(atual.getId()) == 0) {
                 skippedTurns.remove(atual.getId());
             }
 
-            // Avança o turno porque não houve movimento a ser processado
             turnCount++;
-            advanceToNextPlayer();
+            advanceToNextPlayer(); // Avança o turno, pois não haverá reactToAbyssOrTool
             return true;
         }
 
-        // 3. Validação do número de casas a mover
+        // 2. Validação do número de casas a mover
         if (nrSpaces < 1 || nrSpaces > 6) {
+            return false;
+        }
+
+        // 3. Restrição de movimento por Linguagem (Assembly não pode mover 3 casas)
+        if (atual.getLinguagens() != null && atual.getLinguagens().equalsIgnoreCase("Assembly") && nrSpaces == 3) {
             return false;
         }
 
@@ -212,10 +217,8 @@ public class GameManager {
             return true;
         }
 
-        // 6. Não avançar o turno!
-        // O próximo passo esperado da GUI é chamar reactToAbyssOrTool()
-        // que é onde o turno será avançado, garantindo que o Abismo/Ferramenta
-        // na casa destino é processado pelo jogador atual.
+        // NÃO avança o turno aqui!
+        // O turno será avançado no reactToAbyssOrTool() após o processamento da casa.
 
         return true;
     }
@@ -348,34 +351,27 @@ public class GameManager {
     public void eliminatePlayer(Player p) {
         if (p == null) return;
 
-        // remover posições do mapa interno
-        if (positions != null) {
-            positions.remove(p.getId());
-        }
+        // 1. Marcar como derrotado
+        p.setAlive(false);
 
-        // remover jogador da lista
-        int idx = players.indexOf(p);
-        if (idx == -1) return;
+        // O jogador fica na lista 'players' para o histórico, mas é ignorado em getProgrammersInfo()
 
-        boolean eraCurrent = currentPlayer.equals(p.getId());
+        // 2. Verificar se o jogo termina
+        long aliveCount = players.stream().filter(Player::isAlive).count();
 
-        players.remove(idx);
-
-        // se apenas 1 jogador resta → termina o jogo
-        if (players.size() <= 1) {
+        if (aliveCount <= 1) {
             gameState = EstadoJogo.TERMINADO;
-            if (players.size() == 1) {
-                currentPlayer = players.get(0).getId();
+            if (aliveCount == 1) {
+                currentPlayer = players.stream().filter(Player::isAlive).findFirst().get().getId();
             } else {
                 currentPlayer = null;
             }
             return;
         }
 
-        // avançar o turno se o jogador eliminado era o atual
-        if (eraCurrent) {
-            int next = idx % players.size();
-            currentPlayer = players.get(next).getId();
+        // 3. Avançar o turno se o jogador eliminado era o atual
+        if (currentPlayer.equals(p.getId())) {
+            advanceToNextPlayer();
         }
     }
 
@@ -384,15 +380,30 @@ public class GameManager {
             currentPlayer = null;
             return;
         }
-        // encontra índice do currentPlayer (protege contra jogadores eliminados)
-        int idx = 0;
+
+        int startIndex = 0;
+        // 1. Encontrar o índice atual
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getId().equals(currentPlayer)) {
-                idx = i;
+                startIndex = i;
                 break;
             }
         }
-        currentPlayer = players.get((idx + 1) % players.size()).getId();
+
+        // 2. Procurar o próximo jogador vivo (circularmente)
+        for (int i = 1; i <= players.size(); i++) {
+            int nextIndex = (startIndex + i) % players.size();
+            Player nextPlayer = players.get(nextIndex);
+
+            if (nextPlayer.isAlive()) {
+                currentPlayer = nextPlayer.getId();
+                return;
+            }
+        }
+
+        // Se não encontrou ninguém vivo (impossível se a lógica acima estiver correta, mas por segurança)
+        currentPlayer = null;
+        gameState = EstadoJogo.TERMINADO;
     }
 
     public void loadGame(File file) throws
@@ -403,6 +414,17 @@ public class GameManager {
         return true;
     }
 
+    public void setPlayerPosition(Player p, int newPos) {
+        if (p == null || gameBoard == null) return;
+
+        int oldPos = p.getPosicao();
+
+        // 1. Atualizar o Board (mover o ID da posição antiga para a nova)
+        gameBoard.updatePlayerPosition(p, oldPos, newPos);
+
+        // 2. Atualizar o objeto Player
+        p.setPosicao(newPos);
+    }
 
 }
 
