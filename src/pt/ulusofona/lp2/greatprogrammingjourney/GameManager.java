@@ -66,24 +66,7 @@ public class GameManager {
     }
 
     public String reactToAbyssOrTool() {
-        Player p = getPlayerById(currentPlayer);
-        if (p == null) return null;
-
-        int pos = p.getPosicao();
-        AbyssOrTool obj = gameBoard.getObjectAt(pos);
-
-        if (obj == null) {
-            return null; // não há abismo ou ferramenta na posição
-        }
-
-        String resultado = obj.apply(p, this);
-
-        // Se for uma Tool, removemos do tabuleiro após pegar
-        if ("Tool".equals(obj.getType())) {
-            gameBoard.removeObjectAt(pos);
-        }
-
-        return resultado;
+        return "";
     };
 
     public boolean moveCurrentPlayer(int nrSpaces) {
