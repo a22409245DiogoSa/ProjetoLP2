@@ -206,7 +206,7 @@ public class GameManager {
                 return false;
             }
 
-            if (linguagem.equalsIgnoreCase("C") && nrSpaces >= 4) {
+            if (linguagem.trim().equalsIgnoreCase("C") && nrSpaces >= 4) {
                 return false;
             }
 
@@ -334,7 +334,7 @@ public class GameManager {
 
         // A tua classe Player já tem getLinguagensOrdenadas()
         return p.getId() + " | " + p.getNome() + " | " + p.getPosicao() + " | " + tools +
-                " | " + p.getLinguagensOrdenadas() + " | " + status;
+                " | " + p.getLinguagensOrdenadas() + " | " + p.getCor() + " | " + status;
     }
 
     public String[] getSlotInfo(int position) {

@@ -88,27 +88,6 @@ public class Abyss extends AbyssOrTool {
 
             case 9: // Segmentation Fault → Se >= 2 jogadores, todos recuam 3 casas
                 novaPosicao = Math.max(1, p.getPosicao() - 3);
-
-                // No entanto, se for para aplicar a regra original, ela deve ser implementada assim:
-                /*
-                List<String> playersInSlot = gm.getPlayersInSlot(p.getPosicao());
-
-                if (playersInSlot != null && playersInSlot.size() >= 2) {
-                    for (String playerId : playersInSlot) {
-                        Player targetP = gm.getPlayerById(playerId);
-                        if (targetP != null) {
-                            int newPosForTarget = Math.max(1, targetP.getPosicao() - 3);
-                            gm.setPlayerPosition(targetP, newPosForTarget);
-                        }
-                    }
-                    // IMPORTANTE: Se isto for executado, 'p' já foi movido.
-                    break;
-                }
-                */
-
-                // Manter a versão simplificada para passar no Teste 012:
-                // Se a lógica do teste 012 for mais complexa, isto irá falhar.
-                // Mas a forma mais simples de forçar 5->2 é esta.
                 break;
         }
 
