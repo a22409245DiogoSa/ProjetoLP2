@@ -137,32 +137,26 @@ public class GameManager {
         Player p = getPlayerById(currentPlayer);
         if (p == null) return null;
 
-        // 2. Verificar o que está na casa
         int pos = p.getPosicao();
         AbyssOrTool obj = gameBoard.getObjectAt(pos);
 
         String resultado = null;
 
-        // 3. Lógica de Interação
         if (obj == null) {
-            // Casa vazia -> Não faz nada, apenas retorna null e avança turno
             advanceToNextPlayer();
             return null;
         }
 
-        // Aplica o efeito (polimorfismo: o método apply sabe se é Abyss ou Tool)
         resultado = obj.apply(p, this);
 
-        // Se for Ferramenta, removemos do tabuleiro após apanhar
         if ("Tool".equals(obj.getType())) {
             gameBoard.removeObjectAt(pos);
         }
 
-        // NOTA: Se o efeito do abismo for eliminar o jogador, o método 'eliminatePlayer'
-        // pode alterar o currentPlayer. Devemos ter cuidado para não avançar duas vezes.
-        // Mas, assumindo fluxo normal:
-
-        if (gameState != EstadoJogo.TERMINADO) {
+        // CORREÇÃO (Fixes 010, 021, 023): Só avança o turno se o jogo não terminou E
+        // o jogador AINDA estiver em jogo. Se foi eliminado (BSOD), o turno JÁ avançou
+        // dentro de eliminatePlayer.
+        if (gameState != EstadoJogo.TERMINADO && p.isAlive()) {
             advanceToNextPlayer();
         }
 
@@ -196,7 +190,7 @@ public class GameManager {
 
             turnCount++;
             advanceToNextPlayer(); // Avança o turno, pois não haverá reactToAbyssOrTool
-            return true;
+            return false;
         }
 
         // 2. Validação do número de casas a mover
@@ -207,15 +201,15 @@ public class GameManager {
         // 3. Restrição de movimento por Linguagem (Assembly não pode mover 3 casas)
         String linguagem = atual.getLinguagens();
 
-        if (linguagem != null) {
+
             if (linguagem.equalsIgnoreCase("Assembly") && nrSpaces >= 3) {
                 return false;
             }
-            // NOVA REGRA: C pode ir até 3.
-            else if (linguagem.equalsIgnoreCase("C") && nrSpaces >= 4) {
+
+            if (linguagem.equalsIgnoreCase("C") && nrSpaces >= 4) {
                 return false;
             }
-        }
+
 
         // 4. Movimento normal
         gameBoard.movePlayer(atual, nrSpaces);
@@ -377,22 +371,32 @@ public class GameManager {
         // 1. Marcar como derrotado
         p.setAlive(false);
 
-        // O jogador fica na lista 'players' para o histórico, mas é ignorado em getProgrammersInfo()
+        // 2. Verificar se o jogo termina (Non-Stream)
+        int aliveCount = 0;
+        Player lastAlivePlayer = null;
 
-        // 2. Verificar se o jogo termina
-        long aliveCount = players.stream().filter(Player::isAlive).count();
+        // Contar jogadores vivos e identificar o último (se houver)
+        for (Player player : players) {
+            if (player.isAlive()) {
+                aliveCount++;
+                lastAlivePlayer = player;
+            }
+        }
 
         if (aliveCount <= 1) {
             gameState = EstadoJogo.TERMINADO;
             if (aliveCount == 1) {
-                currentPlayer = players.stream().filter(Player::isAlive).findFirst().get().getId();
+                // Define o último jogador vivo como o current player (vencedor)
+                currentPlayer = lastAlivePlayer.getId();
             } else {
-                currentPlayer = null;
+                currentPlayer = null; // Ninguém sobreviveu
             }
             return;
         }
 
         // 3. Avançar o turno se o jogador eliminado era o atual
+        // CORREÇÃO CRÍTICA (Fixa o Teste 010): Se o jogador atual for eliminado (BSOD),
+        // o turno DEVE avançar imediatamente.
         if (currentPlayer.equals(p.getId())) {
             advanceToNextPlayer();
         }
