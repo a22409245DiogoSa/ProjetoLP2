@@ -334,7 +334,7 @@ public class GameManager {
 
         // A tua classe Player já tem getLinguagensOrdenadas()
         return p.getId() + " | " + p.getNome() + " | " + p.getPosicao() + " | " + tools +
-                " | " + p.getLinguagensOrdenadas() + " | " + p.getCor() + " | " + status;
+                " | " + p.getLinguagensOrdenadas() + " | " + status;
     }
 
     public String[] getSlotInfo(int position) {
