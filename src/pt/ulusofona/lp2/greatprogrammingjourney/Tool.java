@@ -13,10 +13,14 @@ public class Tool extends AbyssOrTool {
 
     @Override
     public String apply(Player p, GameManager gm) {
-        // 1. Adiciona a ferramenta ao inventário do jogador
-        p.addFerramenta(this.name);
+        if (p.getFerramentas().contains(this.name)) {
+            // Se já tiver a ferramenta, deve retornar uma mensagem, mas não apanha.
+            // A Ferramenta permanece no tabuleiro (regra 1).
+            return "Já possui " + this.name + ", não apanhou novamente.";
+        }
 
-        // 2. Retorna a mensagem esperada (NÃO PODE SER NULL)
+        // Se não tiver, apanha.
+        p.addFerramenta(this.name);
         return "Apanhou Ferramenta: " + this.name;
     }
 }

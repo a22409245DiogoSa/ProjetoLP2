@@ -149,9 +149,6 @@ public class GameManager {
 
         resultado = obj.apply(p, this);
 
-        if ("Tool".equals(obj.getType())) {
-            gameBoard.removeObjectAt(pos);
-        }
 
         // CORREÇÃO (Fixes 010, 021, 023): Só avança o turno se o jogo não terminou E
         // o jogador AINDA estiver em jogo. Se foi eliminado (BSOD), o turno JÁ avançou
