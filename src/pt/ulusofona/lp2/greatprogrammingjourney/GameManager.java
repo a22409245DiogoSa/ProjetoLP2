@@ -323,18 +323,18 @@ public class GameManager {
         String tools = p.getFerramentas().isEmpty() ? "No tools"
                 : String.join("; ", p.getFerramentas());
 
-        String status;
+        String estado;
         if (!p.isAlive()) {
-            status = "Derrotado"; // Para Exception, BSOD, Segmentation Fault (Test 010)
+            estado = "Derrotado"; // Para Exception, BSOD, Segmentation Fault (Test 010)
         } else if (skippedTurns.containsKey(p.getId()) && skippedTurns.get(p.getId()) > 0) {
-            status = "Preso"; // Para Crash e Ciclo Infinito (Test 021, 023)
+            estado = "Preso"; // Para Crash e Ciclo Infinito (Test 021, 023)
         } else {
-            status = "Em Jogo";
+            estado = "Em Jogo";
         }
 
         // A tua classe Player já tem getLinguagensOrdenadas()
         return p.getId() + " | " + p.getNome() + " | " + p.getPosicao() + " | " + tools +
-                " | " + p.getLinguagensOrdenadas() + " | " + status;
+                " | " + p.getLinguagensOrdenadas() + " | " + estado;
     }
 
     public String[] getSlotInfo(int position) {
