@@ -56,7 +56,8 @@ public class Abyss extends AbyssOrTool {
                 // REMOVIDO: gm.skipTurns(p, 1); // Não perdem turno
                 break;
 
-            case 2: // Exception → perde 1 turno// PERDE O TURNO SEGUINTE
+            case 2:
+                novaPosicao = Math.max(1, p.getPosicao() - 2);
                 break;
 
             case 3: // FileNotFound → Recua 3 casas (Mantida a interpretação)

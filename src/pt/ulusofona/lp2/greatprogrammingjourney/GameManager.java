@@ -31,7 +31,7 @@ public class GameManager {
             return false;
         }
 
-        // 2. Inicializar variáveis de estado
+
         this.playerInfo = playerInfo;
         this.boardSize = worldSize;
         this.positions = new HashMap<>();
@@ -39,7 +39,7 @@ public class GameManager {
         this.players.clear();
         this.skippedTurns.clear();
 
-        // 3. Criar Jogadores
+
         for (String[] jogador : playerInfo) {
             if (jogador == null || jogador.length != 4) return false;
             for (String campo : jogador) {
@@ -52,44 +52,44 @@ public class GameManager {
             gameBoard.addPlayer(p);
         }
 
-        // Ordenar jogadores por ID para garantir a ordem dos turnos
+
         players.sort(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
         currentPlayer = players.get(0).getId();
         gameState = EstadoJogo.EM_ANDAMENTO;
         turnCount = 1;
 
-        // 4. Criar Abismos e Ferramentas
+
         if (abyssesAndTools != null) {
             for (String[] item : abyssesAndTools) {
                 if (item == null || item.length != 3) return false;
 
                 try {
-                    int type = Integer.parseInt(item[0]); // 0 = Abyss, 1 = Tool
+                    int type = Integer.parseInt(item[0]);
                     int idSubtype = Integer.parseInt(item[1]);
                     int position = Integer.parseInt(item[2]);
 
-                    // 4.1. Validações de Posição/Objeto
+
                     if (position < 1 || position > worldSize) return false;
                     if (gameBoard.getObjectAt(position) != null) return false; // Apenas 1 objeto por casa
 
-                    // 4.2. Colocação do Objeto
+
                     if (type == 0) {
-                        // É um Abismo
+
                         String name = getAbyssName(idSubtype);
-                        if (name == null) return false; // ID de Abismo inválido
+                        if (name == null) return false;
                         Abyss abyss = new Abyss(idSubtype, name, position);
                         gameBoard.placeObject(abyss);
                     } else if (type == 1) {
-                        // É uma Ferramenta
+
                         String name = getToolName(idSubtype);
-                        if (name == null) return false; // ID de Ferramenta inválido
+                        if (name == null) return false;
                         Tool tool = new Tool(idSubtype, name, position);
                         gameBoard.placeObject(tool);
                     } else {
-                        return false; // Tipo de objeto inválido
+                        return false;
                     }
                 } catch (NumberFormatException e) {
-                    return false; // Se os dados não forem números válidos
+                    return false;
                 }
             }
         }
@@ -212,7 +212,7 @@ public class GameManager {
                 return false;
             }
             // NOVA REGRA: C pode ir até 3.
-            if (linguagem.equalsIgnoreCase("C") && nrSpaces >= 4) {
+            else if (linguagem.equalsIgnoreCase("C") && nrSpaces >= 4) {
                 return false;
             }
         }
