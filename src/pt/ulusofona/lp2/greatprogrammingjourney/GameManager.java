@@ -149,10 +149,6 @@ public class GameManager {
 
         resultado = obj.apply(p, this);
 
-
-        // CORREÇÃO (Fixes 010, 021, 023): Só avança o turno se o jogo não terminou E
-        // o jogador AINDA estiver em jogo. Se foi eliminado (BSOD), o turno JÁ avançou
-        // dentro de eliminatePlayer.
         if (gameState != EstadoJogo.TERMINADO && p.isAlive()) {
             advanceToNextPlayer();
         }
@@ -196,13 +192,25 @@ public class GameManager {
         }
 
         // 3. Restrição de movimento por Linguagem (Assembly não pode mover 3 casas)
-        String linguagem = atual.getLinguagens();
+        String linguagem = atual.getLinguagens(); // Ex: "C;Java" ou "Assembly;C#"
+
+        if (linguagem != null && !linguagem.isEmpty()) {
+            String firstLang = linguagem;
+            if (linguagem.contains(";")) {
+                firstLang = linguagem.split(";")[0];
+            }
+            String trimmedFirstLang = firstLang.trim();
 
 
-            if ((linguagem.equalsIgnoreCase("Assembly") && nrSpaces >= 3) ||(linguagem.trim().equalsIgnoreCase("C") && nrSpaces >= 4)) {
+            if (trimmedFirstLang.equalsIgnoreCase("C") && nrSpaces >= 4) {
                 return false;
             }
 
+
+            if (trimmedFirstLang.equalsIgnoreCase("Assembly") && nrSpaces >= 3) {
+                return false;
+            }
+        }
 
 
         // 4. Movimento normal
@@ -215,9 +223,6 @@ public class GameManager {
             gameState = EstadoJogo.TERMINADO;
             return true;
         }
-
-        // NÃO avança o turno aqui!
-        // O turno será avançado no reactToAbyssOrTool() após o processamento da casa.
 
         return true;
     }
