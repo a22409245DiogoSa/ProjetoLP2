@@ -62,12 +62,25 @@ public class Player {
     }
 
     public String[] toArray() {
+
+        String toolsStr = ferramentas.isEmpty() ? "No tools" : String.join(";", ferramentas);
+
+        String estado;
+
+        if (!isAlive()) {
+            estado = "Derrotado";
+        } else {
+            estado = "Em Jogo";
+        }
+
         return new String[]{
-                id,
-                nome,
-                getLinguagensOrdenadas(),
-                cor,
-                String.valueOf(posicao)
+                this.id,
+                this.nome,
+                this.getLinguagensOrdenadas(),
+                this.cor.toUpperCase(),
+                String.valueOf(this.posicao),
+                toolsStr,
+                estado
         };
     }
 

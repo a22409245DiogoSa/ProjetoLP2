@@ -345,7 +345,6 @@ public class GameManager {
         return String.join(" | ", infoParts);
     }
 
-    ;
 
     public String[] getProgrammerInfo(int id) {
         for (Player p : players) {
@@ -374,7 +373,7 @@ public class GameManager {
             estado = "Em Jogo";
         }
 
-        // A tua classe Player já tem getLinguagensOrdenadas()
+
         return p.getId() + " | " + p.getNome() + " | " + p.getPosicao() + " | " + tools +
                 " | " + p.getLinguagensOrdenadas() + " | " + estado;
     }
@@ -508,7 +507,9 @@ public class GameManager {
 
 
         for (String line : lines) {
-            if (line.isEmpty() || line.startsWith("GPJ_SAVE_FILE")) continue;
+            if (line.isEmpty() || line.startsWith("GPJ_SAVE_FILE")) {
+                continue;
+            }
 
             String[] parts = line.split("\\|", -1);
             String type = parts[0];
@@ -517,7 +518,9 @@ public class GameManager {
                 switch (type) {
                     case "GS":
                         // GS|<boardSize>|<turnCount>|<currentPlayer>|<gameState>|<lastDiceRoll>
-                        if (parts.length != 6) throw new InvalidFileException("Linha GS corrompida.");
+                        if (parts.length != 6) {
+                            throw new InvalidFileException("Linha GS corrompida.");
+                        }
                         boardSize = Integer.parseInt(parts[1]);
                         turnCount = Integer.parseInt(parts[2]);
                         currentPlayer = parts[3];
@@ -527,17 +530,23 @@ public class GameManager {
                         break;
                     case "ST":
                         // ST|<PlayerID>|<TurnsLeft>
-                        if (parts.length != 3) throw new InvalidFileException("Linha ST corrompida.");
+                        if (parts.length != 3) {
+                            throw new InvalidFileException("Linha ST corrompida.");
+                        }
                         skippedTurns.put(parts[1], Integer.parseInt(parts[2]));
                         break;
                     case "P":
                         // P|<ID>|<Nome>|<Linguagens>|<Cor>|<Posicao>|<Alive>|<lastPosition>|<secondLastPosition>|<Tool1;Tool2;...>
-                        if (parts.length != 10) throw new InvalidFileException("Linha P corrompida.");
+                        if (parts.length != 10) {
+                            throw new InvalidFileException("Linha P corrompida.");
+                        }
                         playerData.add(parts);
                         break;
                     case "O":
                         // O|<Type:A/T>|<SubtypeID>|<Position>
-                        if (parts.length != 4) throw new InvalidFileException("Linha O corrompida.");
+                        if (parts.length != 4) {
+                            throw new InvalidFileException("Linha O corrompida.");
+                        }
                         objectData.add(parts);
                         break;
                     default:
@@ -548,7 +557,9 @@ public class GameManager {
             }
         }
 
-        if (boardSize == 0) throw new InvalidFileException("Tamanho do tabuleiro não definido.");
+        if (boardSize == 0) {
+            throw new InvalidFileException("Tamanho do tabuleiro não definido.");
+        }
 
         restorePlayers(playerData);
 
