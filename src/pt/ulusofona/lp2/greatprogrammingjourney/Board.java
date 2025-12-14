@@ -14,8 +14,9 @@ public class Board {
         this.boardSize = boardSize;
 
         board = new ArrayList[boardSize];
-        for (int i = 0; i < boardSize; i++) board[i] = new ArrayList<>();
-
+        for (int i = 0; i < boardSize; i++) {
+            board[i] = new ArrayList<>();
+        }
         objetos = new AbyssOrTool[boardSize];
     }
 
@@ -44,7 +45,9 @@ public class Board {
     }
 
     public AbyssOrTool getObjectAt(int pos) {
-        if (pos < 1 || pos > boardSize) return null;
+        if (pos < 1 || pos > boardSize) {
+            return null;
+        }
         return objetos[pos - 1];
     }
 
@@ -69,7 +72,9 @@ public class Board {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < ids.size(); i++) {
                 sb.append(ids.get(i));
-                if (i < ids.size() - 1) sb.append(",");
+                if (i < ids.size() - 1) {
+                    sb.append(",");
+                }
             }
             playersCSV = sb.toString();
         }
@@ -115,15 +120,21 @@ public class Board {
     }
 
     public List<String> getPlayersInSlot(int pos) {
-        if (pos < 1 || pos > boardSize) return new ArrayList<>();
+        if (pos < 1 || pos > boardSize) {
+            return new ArrayList<>();
+        }
         return board[pos - 1];
     }
 
     public void addPlayerForLoad(Player p, int pos) {
-        if (pos < 1 || pos > boardSize) pos = 1; // Sanidade
+        if (pos < 1 || pos > boardSize) {
+            pos = 1;
+        }
         int index = pos - 1;
 
-        if (board[index] == null) board[index] = new ArrayList<>();
+        if (board[index] == null) {
+            board[index] = new ArrayList<>();
+        }
 
         board[index].add(p.getId());
         positions.put(p.getId(), pos);

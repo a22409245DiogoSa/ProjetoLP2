@@ -21,7 +21,8 @@ public class GameManager {
     List<Player> players = new ArrayList<>();
     Board gameBoard;
 
-    public GameManager() {}
+    public GameManager() {
+    }
 
     public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
         if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4) {
@@ -41,9 +42,13 @@ public class GameManager {
 
 
         for (String[] jogador : playerInfo) {
-            if (jogador == null || jogador.length != 4) return false;
+            if (jogador == null || jogador.length != 4) {
+                return false;
+            }
             for (String campo : jogador) {
-                if (campo == null) return false;
+                if (campo == null) {
+                    return false;
+                }
             }
 
             Player p = new Player(jogador[0], jogador[1], jogador[2], jogador[3]);
@@ -61,7 +66,9 @@ public class GameManager {
 
         if (abyssesAndTools != null) {
             for (String[] item : abyssesAndTools) {
-                if (item == null || item.length != 3) return false;
+                if (item == null || item.length != 3) {
+                    return false;
+                }
 
                 try {
                     int type = Integer.parseInt(item[0]);
@@ -69,20 +76,28 @@ public class GameManager {
                     int position = Integer.parseInt(item[2]);
 
 
-                    if (position < 1 || position > worldSize) return false;
-                    if (gameBoard.getObjectAt(position) != null) return false; // Apenas 1 objeto por casa
+                    if (position < 1 || position > worldSize) {
+                        return false;
+                    }
+                    if (gameBoard.getObjectAt(position) != null) {
+                        return false; // Apenas 1 objeto por casa
+                    }
 
 
                     if (type == 0) {
 
                         String name = getAbyssName(idSubtype);
-                        if (name == null) return false;
+                        if (name == null) {
+                            return false;
+                        }
                         Abyss abyss = new Abyss(idSubtype, name, position);
                         gameBoard.placeObject(abyss);
                     } else if (type == 1) {
 
                         String name = getToolName(idSubtype);
-                        if (name == null) return false;
+                        if (name == null) {
+                            return false;
+                        }
                         Tool tool = new Tool(idSubtype, name, position);
                         gameBoard.placeObject(tool);
                     } else {
@@ -99,29 +114,47 @@ public class GameManager {
 
     private String getAbyssName(int id) {
         switch (id) {
-            case 0: return "Erro de sintaxe";
-            case 1: return "Erro de lógica";
-            case 2: return "Exception";
-            case 3: return "FileNotFoundException";
-            case 4: return "Crash";
-            case 5: return "Código duplicado";
-            case 6: return "Efeitos secundários";
-            case 7: return "Blue Screen of Death";
-            case 8: return "Ciclo infinito";
-            case 9: return "Segmentation fault";
-            default: return null;
+            case 0:
+                return "Erro de sintaxe";
+            case 1:
+                return "Erro de lógica";
+            case 2:
+                return "Exception";
+            case 3:
+                return "FileNotFoundException";
+            case 4:
+                return "Crash";
+            case 5:
+                return "Código duplicado";
+            case 6:
+                return "Efeitos secundários";
+            case 7:
+                return "Blue Screen of Death";
+            case 8:
+                return "Ciclo infinito";
+            case 9:
+                return "Segmentation fault";
+            default:
+                return null;
         }
     }
 
     private String getToolName(int id) {
         switch (id) {
-            case 0: return "Herança";
-            case 1: return "Programação Funcional";
-            case 2: return "Testes Unitários";
-            case 3: return "Tratamento de Excepções";
-            case 4: return "IDE";
-            case 5: return "Ajuda Do Professor";
-            default: return null;
+            case 0:
+                return "Herança";
+            case 1:
+                return "Programação Funcional";
+            case 2:
+                return "Testes Unitários";
+            case 3:
+                return "Tratamento de Excepções";
+            case 4:
+                return "IDE";
+            case 5:
+                return "Ajuda Do Professor";
+            default:
+                return null;
         }
     }
 
@@ -135,7 +168,9 @@ public class GameManager {
 
     public String reactToAbyssOrTool() {
         Player p = getPlayerById(currentPlayer);
-        if (p == null) return null;
+        if (p == null) {
+            return null;
+        }
 
         int pos = p.getPosicao();
         AbyssOrTool obj = gameBoard.getObjectAt(pos);
@@ -154,14 +189,18 @@ public class GameManager {
         }
 
         return resultado;
-    };
+    }
+
+    ;
 
     public boolean moveCurrentPlayer(int nrSpaces) {
         if (gameState == EstadoJogo.TERMINADO || gameBoard == null) {
             return false;
         }
 
-        if (currentPlayer == null) return false;
+        if (currentPlayer == null) {
+            return false;
+        }
 
         Player atual = getPlayerById(currentPlayer);
 
@@ -304,7 +343,9 @@ public class GameManager {
 
         // Junta os jogadores com " | "
         return String.join(" | ", infoParts);
-    };
+    }
+
+    ;
 
     public String[] getProgrammerInfo(int id) {
         for (Player p : players) {
@@ -317,7 +358,9 @@ public class GameManager {
 
     public String getProgrammerInfoAsStr(int id) {
         Player p = getPlayerById(String.valueOf(id));
-        if (p == null) return null;
+        if (p == null) {
+            return null;
+        }
 
         String tools = p.getFerramentas().isEmpty() ? "No tools"
                 : String.join("; ", p.getFerramentas());
@@ -347,8 +390,13 @@ public class GameManager {
         return nrSquare == boardSize ? "final.png" : "imagem" + nrSquare + ".png";
     }
 
-    public JPanel getAuthorsPanel() { return null; }
-    public HashMap<String, String> customizeBoard() { return new HashMap<>(); }
+    public JPanel getAuthorsPanel() {
+        return null;
+    }
+
+    public HashMap<String, String> customizeBoard() {
+        return new HashMap<>();
+    }
 
     public Player getPlayerById(String id) {
         for (Player p : players) {
@@ -360,21 +408,24 @@ public class GameManager {
     }
 
     public void skipTurns(Player p, int n) {
-        if (p == null || n <= 0) return;
+        if (p == null || n <= 0) {
+            return;
+        }
         skippedTurns.put(p.getId(), skippedTurns.getOrDefault(p.getId(), 0) + n);
     }
 
     public void eliminatePlayer(Player p) {
-        if (p == null) return;
+        if (p == null) {
+            return;
+        }
 
-        // 1. Marcar como derrotado
         p.setAlive(false);
 
-        // 2. Verificar se o jogo termina (Non-Stream)
+
         int aliveCount = 0;
         Player lastAlivePlayer = null;
 
-        // Contar jogadores vivos e identificar o último (se houver)
+
         for (Player player : players) {
             if (player.isAlive()) {
                 aliveCount++;
@@ -385,7 +436,6 @@ public class GameManager {
         if (aliveCount <= 1) {
             gameState = EstadoJogo.TERMINADO;
             if (aliveCount == 1) {
-                // Define o último jogador vivo como o current player (vencedor)
                 currentPlayer = lastAlivePlayer.getId();
             } else {
                 currentPlayer = null; // Ninguém sobreviveu
@@ -393,9 +443,6 @@ public class GameManager {
             return;
         }
 
-        // 3. Avançar o turno se o jogador eliminado era o atual
-        // CORREÇÃO CRÍTICA (Fixa o Teste 010): Se o jogador atual for eliminado (BSOD),
-        // o turno DEVE avançar imediatamente.
         if (currentPlayer.equals(p.getId())) {
             advanceToNextPlayer();
         }
@@ -433,9 +480,6 @@ public class GameManager {
     }
 
     public void loadGame(File file) throws InvalidFileException, FileNotFoundException {
-        // Assume que InvalidFileException é uma classe customizada simples
-
-        // 0. Limpa o estado atual antes de carregar
         players.clear();
         skippedTurns.clear();
         gameBoard = null;
@@ -445,7 +489,7 @@ public class GameManager {
         lastDiceRoll = 0;
         boardSize = 0;
 
-        // 1. Lê o ficheiro
+
         List<String> lines = new ArrayList<>();
         try (Scanner scanner = new Scanner(file)) {
             while (scanner.hasNextLine()) {
@@ -459,9 +503,9 @@ public class GameManager {
             throw new InvalidFileException("Cabeçalho de ficheiro inválido.");
         }
 
-        // Listas auxiliares para guardar dados até o boardSize ser conhecido
         List<String[]> playerData = new ArrayList<>();
         List<String[]> objectData = new ArrayList<>();
+
 
         for (String line : lines) {
             if (line.isEmpty() || line.startsWith("GPJ_SAVE_FILE")) continue;
@@ -497,7 +541,7 @@ public class GameManager {
                         objectData.add(parts);
                         break;
                     default:
-                        // Ignorar linhas desconhecidas
+
                 }
             } catch (Exception e) {
                 throw new InvalidFileException("Corrupção de dados na linha: " + line);
@@ -506,61 +550,11 @@ public class GameManager {
 
         if (boardSize == 0) throw new InvalidFileException("Tamanho do tabuleiro não definido.");
 
-        // 2. Recriação dos Jogadores e adição ao Board
-        for (String[] data : playerData) {
-            String id = data[1];
-            String nome = data[2];
-            String linguagens = data[3];
-            String cor = data[4];
-            int posicao = Integer.parseInt(data[5]);
-            boolean alive = Boolean.parseBoolean(data[6]);
-            int lastPos = Integer.parseInt(data[7]);
-            int secondLastPos = Integer.parseInt(data[8]);
-            String toolsStr = data[9];
+        restorePlayers(playerData);
 
-            Player p = new Player(id, nome, linguagens, cor);
-            p.setAlive(alive);
+        restoreGameObjects(objectData);
 
-            // Usar setters de "Load"
-            p.setPosicaoForLoad(posicao);
-            p.setLastPosition(lastPos);
-            p.setSecondLastPosition(secondLastPos);
 
-            if (!toolsStr.isEmpty()) {
-                p.setFerramentas(new ArrayList<>(Arrays.asList(toolsStr.split(";"))));
-            }
-
-            players.add(p);
-            // Adiciona o jogador ao Board na posição correta
-            gameBoard.addPlayerForLoad(p, posicao);
-        }
-
-        // Ordenar jogadores por ID
-        players.sort(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
-
-        // 3. Recriação dos Objetos do Tabuleiro
-        for (String[] data : objectData) {
-            String typeChar = data[1];
-            int idSubtype = Integer.parseInt(data[2]);
-            int position = Integer.parseInt(data[3]);
-
-            AbyssOrTool obj = null;
-            if (typeChar.equals("A")) {
-                String name = getAbyssName(idSubtype);
-                if (name == null) throw new InvalidFileException("ID de Abismo inválido no ficheiro.");
-                obj = new Abyss(idSubtype, name, position);
-            } else if (typeChar.equals("T")) {
-                String name = getToolName(idSubtype);
-                if (name == null) throw new InvalidFileException("ID de Ferramenta inválido no ficheiro.");
-                obj = new Tool(idSubtype, name, position);
-            }
-
-            if (obj != null) {
-                gameBoard.placeObject(obj);
-            }
-        }
-
-        // 4. Se o currentPlayer for inválido/eliminado, reset para o primeiro jogador ativo
         boolean currentPlayerIsValid = false;
         Player firstActive = null;
         for (Player p : players) {
@@ -568,7 +562,6 @@ public class GameManager {
                 currentPlayerIsValid = true;
             }
 
-            // Procura o primeiro jogador ativo (ordenado por ID, pois 'players' está ordenado)
             if (p.isAlive() && firstActive == null) {
                 firstActive = p;
             }
@@ -622,8 +615,11 @@ public class GameManager {
             return false;
         }
     }
+
     public void setPlayerPosition(Player p, int newPos) {
-        if (p == null || gameBoard == null) return;
+        if (p == null || gameBoard == null) {
+            return;
+        }
 
         int oldPos = p.getPosicao();
 
@@ -640,6 +636,65 @@ public class GameManager {
 
     public int getLastDiceRoll() {
         return lastDiceRoll;
+    }
+
+    private void restoreGameObjects(List<String[]> objectData) throws InvalidFileException {
+        for (String[] data : objectData) {
+            String typeChar = data[1];
+            int idSubtype = Integer.parseInt(data[2]);
+            int position = Integer.parseInt(data[3]);
+
+            AbyssOrTool obj = null;
+            if (typeChar.equals("A")) {
+                String name = getAbyssName(idSubtype);
+                if (name == null) {
+                    throw new InvalidFileException("ID de Abismo inválido no ficheiro.");
+                }
+                obj = new Abyss(idSubtype, name, position);
+            } else if (typeChar.equals("T")) {
+                String name = getToolName(idSubtype);
+                if (name == null) {
+                    throw new InvalidFileException("ID de Ferramenta inválido no ficheiro.");
+                }
+                obj = new Tool(idSubtype, name, position);
+            }
+
+            if (obj != null) {
+                gameBoard.placeObject(obj);
+            }
+        }
+    }
+
+    private void restorePlayers(List<String[]> playerData) throws InvalidFileException {
+        for (String[] data : playerData) {
+            String id = data[1];
+            String nome = data[2];
+            String linguagens = data[3];
+            String cor = data[4];
+            int posicao = Integer.parseInt(data[5]);
+            boolean alive = Boolean.parseBoolean(data[6]);
+            int lastPos = Integer.parseInt(data[7]);
+            int secondLastPos = Integer.parseInt(data[8]);
+            String toolsStr = data[9];
+
+            Player p = new Player(id, nome, linguagens, cor);
+            p.setAlive(alive);
+
+            // Usar setters de "Load"
+            p.setPosicaoForLoad(posicao);
+            p.setLastPosition(lastPos);
+            p.setSecondLastPosition(secondLastPos);
+
+            if (!toolsStr.isEmpty()) {
+                p.setFerramentas(new ArrayList<>(Arrays.asList(toolsStr.split(";"))));
+            }
+
+            players.add(p);
+            // Adiciona o jogador ao Board na posição correta
+            gameBoard.addPlayerForLoad(p, posicao);
+        }
+        // Ordenar jogadores por ID
+        players.sort(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
     }
 }
 

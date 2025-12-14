@@ -54,7 +54,9 @@ public class Player {
 
     public String getLinguagensOrdenadas() {
         String[] arr = linguagens.split(";");
-        for (int i = 0; i < arr.length; i++) arr[i] = arr[i].trim();
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = arr[i].trim();
+        }
         Arrays.sort(arr);
         return String.join("; ", arr);
     }
