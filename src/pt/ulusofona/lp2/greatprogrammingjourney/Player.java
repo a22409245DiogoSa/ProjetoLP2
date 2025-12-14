@@ -77,7 +77,7 @@ public class Player {
                 this.id,
                 this.nome,
                 this.getLinguagensOrdenadas(),
-                this.cor.toUpperCase(),
+                this.cor = firstLetterMaiuscula(cor),
                 String.valueOf(this.posicao),
                 toolsStr,
                 estado
@@ -108,5 +108,12 @@ public class Player {
 
     public void setFerramentas(List<String> ferramentas) {
         this.ferramentas = ferramentas;
+    }
+
+    private String firstLetterMaiuscula(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
     }
 }
