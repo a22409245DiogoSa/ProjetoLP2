@@ -34,17 +34,17 @@ public class Abyss extends AbyssOrTool {
 
         String ferramentaNecessaria = anulacoes.get(id);
 
-        // 2. Tenta Anular o Abismo
+
         if (ferramentaNecessaria != null && p.getFerramentas().contains(ferramentaNecessaria)) {
             p.getFerramentas().remove(ferramentaNecessaria);
             return this.name + " anulado por " + ferramentaNecessaria;
         }
 
-        // 3. Aplica Efeito do Abismo (REGRAS FINAIS)
+
         int novaPosicao = p.getPosicao();
 
         switch (id) {
-            case 0: // Syntax Error → recua 1 casa
+            case 0: // Syntax Error
                 novaPosicao = Math.max(1, p.getPosicao() - 1);
                 break;
 
@@ -60,22 +60,22 @@ public class Abyss extends AbyssOrTool {
                 novaPosicao = Math.max(1, p.getPosicao() - 2);
                 break;
 
-            case 3: // FileNotFound → Recua 3 casas (Mantida a interpretação)
+            case 3: // FileNotFound → Recua 3 casas
                 novaPosicao = Math.max(1, p.getPosicao() - 3);
                 break;
 
-            case 4: // Crash → volta à primeira casa (posição 1). **NÃO PERDE TURNO**
+            case 4: // Crash → volta à primeira casa
                 novaPosicao = 1;
                 break;
 
             case 5: // Código Duplicado → recua para a posição anterior E perde 1 turno
                 novaPosicao = p.getLastPosition();
-                // REMOVIDO: gm.skipTurns(p, 1); // Não perdem turno
+
                 break;
 
             case 6: // Efeitos Secundários → recua para a posição de 2 movimentos atrás E perde 1 turno
                 novaPosicao = p.getSecondLastPosition();
-                // REMOVIDO: gm.skipTurns(p, 1); // Não perdem turno
+
                 break;
 
             case 7: // BSOD → perde imediatamente o jogo
@@ -91,7 +91,7 @@ public class Abyss extends AbyssOrTool {
                 break;
         }
 
-        // Se houve alteração de posição (e não foi eliminado/saltou turno), atualiza.
+
         if (novaPosicao != p.getPosicao()) {
             gm.setPlayerPosition(p, novaPosicao);
         }

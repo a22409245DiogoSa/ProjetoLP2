@@ -16,8 +16,8 @@ public abstract class AbyssOrTool {
     public String getName() { return name; }
     public int getPosition() { return position; }
 
-    public abstract String getType(); // "Abyss" ou "Tool"
+    public abstract String getType();
 
-    // Efeito ainda não implementado
+
     public abstract String apply(Player p, GameManager gm);
 }

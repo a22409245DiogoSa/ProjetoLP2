@@ -14,8 +14,7 @@ public class Tool extends AbyssOrTool {
     @Override
     public String apply(Player p, GameManager gm) {
         if (p.getFerramentas().contains(this.name)) {
-            // Se já tiver a ferramenta, deve retornar uma mensagem, mas não apanha.
-            // A Ferramenta permanece no tabuleiro (regra 1).
+
             return "Já possui " + this.name + ", não apanhou novamente.";
         }
 

@@ -204,16 +204,16 @@ public class GameManager {
 
         Player atual = getPlayerById(currentPlayer);
 
-        // Se o jogador atual já tiver sido eliminado (não deveria acontecer, mas por segurança)
+
         if (atual == null || !atual.isAlive()) {
             advanceToNextPlayer();
             return false;
         }
 
-        // 1. Lógica de Turnos Saltados (Skip Turns)
+
         Integer skips = skippedTurns.getOrDefault(atual.getId(), 0);
         if (skips > 0) {
-            // Decrementa e passa a vez sem mover
+
             skippedTurns.put(atual.getId(), skips - 1);
 
             if (skippedTurns.get(atual.getId()) == 0) {
@@ -221,16 +221,16 @@ public class GameManager {
             }
 
             turnCount++;
-            advanceToNextPlayer(); // Avança o turno, pois não haverá reactToAbyssOrTool
+            advanceToNextPlayer();
             return false;
         }
 
-        // 2. Validação do número de casas a mover
+
         if (nrSpaces < 1 || nrSpaces > 6) {
             return false;
         }
 
-        // 3. Restrição de movimento por Linguagem (Assembly não pode mover 3 casas)
+
         String linguagem = atual.getLinguagens(); // Ex: "C;Java" ou "Assembly;C#"
 
         if (linguagem != null && !linguagem.isEmpty()) {
@@ -252,12 +252,12 @@ public class GameManager {
         }
 
 
-        // 4. Movimento normal
+
         gameBoard.movePlayer(atual, nrSpaces);
         this.lastDiceRoll = nrSpaces;
         turnCount++;
 
-        // 5. Verifica se chegou ao fim (Fim do Tabuleiro)
+
         if (gameBoard.isAtEnd(atual)) {
             gameState = EstadoJogo.TERMINADO;
             return true;
@@ -324,7 +324,6 @@ public class GameManager {
         List<String> infoParts = new ArrayList<>();
 
         for (Player p : players) {
-            // Apenas jogadores vivos
             if (p.isAlive()) {
                 String nome = p.getNome();
                 List<String> tools = p.getFerramentas();
@@ -333,7 +332,6 @@ public class GameManager {
                 if (tools.isEmpty()) {
                     toolsStr = "No tools";
                 } else {
-                    // Junta as ferramentas com ";"
                     toolsStr = String.join(";", tools);
                 }
 
@@ -341,7 +339,6 @@ public class GameManager {
             }
         }
 
-        // Junta os jogadores com " | "
         return String.join(" | ", infoParts);
     }
 
@@ -366,9 +363,9 @@ public class GameManager {
 
         String estado;
         if (!p.isAlive()) {
-            estado = "Derrotado"; // Para Exception, BSOD, Segmentation Fault (Test 010)
+            estado = "Derrotado";
         } else if (skippedTurns.containsKey(p.getId()) && skippedTurns.get(p.getId()) > 0) {
-            estado = "Preso"; // Para Crash e Ciclo Infinito (Test 021, 023)
+            estado = "Preso";
         } else {
             estado = "Em Jogo";
         }
@@ -454,7 +451,6 @@ public class GameManager {
         }
 
         int startIndex = 0;
-        // 1. Encontrar o índice atual
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getId().equals(currentPlayer)) {
                 startIndex = i;
@@ -462,7 +458,6 @@ public class GameManager {
             }
         }
 
-        // 2. Procurar o próximo jogador vivo (circularmente)
         for (int i = 1; i <= players.size(); i++) {
             int nextIndex = (startIndex + i) % players.size();
             Player nextPlayer = players.get(nextIndex);
@@ -472,8 +467,6 @@ public class GameManager {
                 return;
             }
         }
-
-        // Se não encontrou ninguém vivo (impossível se a lógica acima estiver correta, mas por segurança)
         currentPlayer = null;
         gameState = EstadoJogo.TERMINADO;
     }
@@ -585,11 +578,9 @@ public class GameManager {
 
     public boolean saveGame(File file) {
         try (FileWriter writer = new FileWriter(file)) {
-            // 1. Cabeçalho
             writer.write("GPJ_SAVE_FILE\n");
 
-            // 2. Estado Global
-            // GS|<boardSize>|<turnCount>|<currentPlayer>|<gameState>|<lastDiceRoll>
+
             String gameStateStr = gameState.name();
             String globalStateLine = "GS|" + boardSize + "|" + turnCount + "|" + currentPlayer + "|" + gameStateStr + "|" + lastDiceRoll + "\n";
             writer.write(globalStateLine);
@@ -600,21 +591,18 @@ public class GameManager {
                 writer.write("ST|" + entry.getKey() + "|" + entry.getValue() + "\n");
             }
 
-            // 4. Jogadores
+
             for (Player p : players) {
-                // P|<ID>|<Nome>|<Linguagens>|<Cor>|<Posicao>|<Alive>|<lastPosition>|<secondLastPosition>|<Tool1;Tool2;...>
                 String toolsStr = String.join(";", p.getFerramentas());
                 String playerLine = "P|" + p.getId() + "|" + p.getNome() + "|" + p.getLinguagens() + "|" + p.getCor() + "|" +
                         p.getPosicao() + "|" + p.isAlive() + "|" + p.getLastPosition() + "|" + p.getSecondLastPosition() + "|" + toolsStr + "\n";
                 writer.write(playerLine);
             }
 
-            // 5. Objetos do Tabuleiro
             if (gameBoard != null) {
                 for (int i = 1; i <= boardSize; i++) {
                     AbyssOrTool obj = gameBoard.getObjectAt(i);
                     if (obj != null) {
-                        // O|<Type:A/T>|<SubtypeID>|<Position>
                         String typeChar = "Abyss".equals(obj.getType()) ? "A" : "T";
                         writer.write("O|" + typeChar + "|" + obj.getId() + "|" + obj.getPosition() + "\n");
                     }
@@ -634,10 +622,8 @@ public class GameManager {
 
         int oldPos = p.getPosicao();
 
-        // 1. Atualizar o Board (mover o ID da posição antiga para a nova)
         gameBoard.updatePlayerPosition(p, oldPos, newPos);
 
-        // 2. Atualizar o objeto Player
         p.setPosicao(newPos);
     }
 
@@ -691,7 +677,6 @@ public class GameManager {
             Player p = new Player(id, nome, linguagens, cor);
             p.setAlive(alive);
 
-            // Usar setters de "Load"
             p.setPosicaoForLoad(posicao);
             p.setLastPosition(lastPos);
             p.setSecondLastPosition(secondLastPos);
@@ -701,10 +686,8 @@ public class GameManager {
             }
 
             players.add(p);
-            // Adiciona o jogador ao Board na posição correta
             gameBoard.addPlayerForLoad(p, posicao);
         }
-        // Ordenar jogadores por ID
         players.sort(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
     }
 }

@@ -62,10 +62,9 @@ public class Board {
     public String[] getSlotInfo(int position) {
 
         if (board == null || position < 1 || position > boardSize) {
-            return new String[]{"", "", ""}; // Retorna array vazio em vez de null
+            return new String[]{"", "", ""};
         }
 
-        // 1. Jogadores na Casa (playersCSV está correto)
         List<String> ids = board[position - 1];
         String playersCSV = "";
         if (!ids.isEmpty()) {
@@ -79,10 +78,10 @@ public class Board {
             playersCSV = sb.toString();
         }
 
-        // 2. Abismo ou Ferramenta
+
         AbyssOrTool obj = objetos[position - 1];
-        String objNameStr = ""; // O nome do objeto (Ex: "Erro de Sintaxe")
-        String tipoIdStr = "";  // O Tipo:ID (Ex: "A:0")
+        String objNameStr = "";
+        String tipoIdStr = "";
 
         if (obj != null) {
             objNameStr = obj.getName();
@@ -95,8 +94,7 @@ public class Board {
             }
         }
 
-        // Retorna no formato CORRETO e esperado pelo teste:
-        // [Jogadores na Casa, Nome do Objeto, Tipo:ID]
+
         return new String[]{playersCSV, objNameStr, tipoIdStr};
     }
 
