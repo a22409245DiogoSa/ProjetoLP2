@@ -21,7 +21,7 @@ public class Player {
         this.id = id;
         this.nome = nome;
         this.linguagens = linguagens;
-        this.cor = cor;
+        this.cor = cor.substring(0, 1).toUpperCase() + cor.substring(1).toLowerCase();
     }
 
     public boolean isAlive() {

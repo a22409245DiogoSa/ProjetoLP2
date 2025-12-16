@@ -10,7 +10,7 @@ import java.util.List;
 public class GameManager {
     String[][] playerInfo;
     int boardSize;
-    String currentPlayer;
+    public String currentPlayer;
     EstadoJogo gameState;
     ArrayList<String>[] board;
     HashMap<String, Integer> positions;
