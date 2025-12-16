@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Board {
-    ArrayList<String>[] board;
-    HashMap<String, Integer> positions = new HashMap<>();
-    AbyssOrTool[] objetos;
-    int boardSize;
+    private ArrayList<String>[] board;
+    private HashMap<String, Integer> positions = new HashMap<>();
+    private AbyssOrTool[] objetos;
+    private int boardSize;
 
     public Board(int boardSize) {
         this.boardSize = boardSize;

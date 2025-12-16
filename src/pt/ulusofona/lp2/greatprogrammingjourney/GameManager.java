@@ -8,18 +8,17 @@ import java.util.*;
 import java.util.List;
 
 public class GameManager {
-    String[][] playerInfo;
-    int boardSize;
-    public String currentPlayer;
-    EstadoJogo gameState;
-    ArrayList<String>[] board;
-    HashMap<String, Integer> positions;
-    int turnCount = 1;
+    private String[][] playerInfo;
+    private int boardSize;
+    String currentPlayer;
+    private EstadoJogo gameState;
+    private ArrayList<String>[] board;
+    private HashMap<String, Integer> positions;
+    private int turnCount = 1;
     private HashMap<String, Integer> skippedTurns = new HashMap<>();
     private int lastDiceRoll = 0;
-
-    List<Player> players = new ArrayList<>();
-    Board gameBoard;
+    private List<Player> players = new ArrayList<>();
+    private Board gameBoard;
 
     public GameManager() {
     }

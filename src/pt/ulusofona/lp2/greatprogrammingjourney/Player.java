@@ -5,14 +5,14 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Player {
-    String id;
-    String nome;
-    String linguagens;
-    String cor;
-    int posicao = 1;
+    private String id;
+    private String nome;
+    private String linguagens;
+    private String cor;
+    private int posicao = 1;
     private boolean alive;
 
-    List<String> ferramentas = new ArrayList<>();
+    private List<String> ferramentas = new ArrayList<>();
 
     private int lastPosition = 1;
     private int secondLastPosition = 1;
