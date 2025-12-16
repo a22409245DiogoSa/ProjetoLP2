@@ -1,1 +1,1 @@
-![](images/DiagramaUMLProjeto.png?raw=true "UML")
+![Diagrama UML do Projeto](images/DiagramaFinal.png)
