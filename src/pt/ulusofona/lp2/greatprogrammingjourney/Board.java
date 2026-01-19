@@ -133,7 +133,7 @@ public class Board {
         return new String[]{playersCSV, objNameStr, tipoIdStr};
     }
 
-    /**
+    /**vfldnvfldkm
      * Move manualmente um jogador de uma posição para outra (útil para efeitos de abismos).
      */
     public void updatePlayerPosition(Player p, int oldPos, int newPos) {
