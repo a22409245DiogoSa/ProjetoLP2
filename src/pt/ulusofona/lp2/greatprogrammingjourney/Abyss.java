@@ -35,7 +35,7 @@ public class Abyss extends AbyssOrTool {
 
         // Verifica se o jogador tem a ferramenta que anula o abismo
         String ferramentaNecessaria = anulacoes.get(id);
-        if (ferramentaNecessaria != null && p.getFerramentas().contains(ferramentaNecessaria)) {
+        if (id != 20 && ferramentaNecessaria != null && p.getFerramentas().contains(ferramentaNecessaria)) {
             p.getFerramentas().remove(ferramentaNecessaria);
             return this.name + " anulado por " + ferramentaNecessaria;
         }
@@ -89,19 +89,18 @@ public class Abyss extends AbyssOrTool {
             case 20: { // LLM
                 boolean quartoOuMaisMovimentos = p.getLastPosition() != p.getSecondLastPosition();
 
-                if (quartoOuMaisMovimentos) {
-                    // A partir do 4.º movimento → avança o último dado
-                    novaPosicao = p.getPosicao() + gm.getLastDiceRoll();
-                } else {
+                if (!quartoOuMaisMovimentos) {
                     // Antes do 4.º movimento → recua para a posição anterior
                     novaPosicao = p.getLastPosition();
 
                     // Anulação parcial com Ajuda do Professor
                     if (p.getFerramentas().contains("Ajuda Do Professor")) {
                         p.getFerramentas().remove("Ajuda Do Professor");
-                        gm.setPlayerPosition(p, novaPosicao);
                         return name + " anulado por Ajuda Do Professor";
                     }
+                } else {
+                    // A partir do 4.º movimento → avança o último dado
+                    novaPosicao = p.getPosicao() + gm.getLastDiceRoll();
                 }
                 break;
             }
