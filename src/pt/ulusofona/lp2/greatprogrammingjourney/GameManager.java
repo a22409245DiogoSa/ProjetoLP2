@@ -1,105 +1,97 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.util.*;
-import java.util.List;
 
 public class GameManager {
-    String[][] playerInfo;
-    int boardSize;
-    public String currentPlayer;
-    EstadoJogo gameState;
-    ArrayList<String>[] board;
-    HashMap<String, Integer> positions;
-    int turnCount = 1;
-    private HashMap<String, Integer> skippedTurns = new HashMap<>();
-    private int lastDiceRoll = 0;
-
-    List<Player> players = new ArrayList<>();
-    Board gameBoard;
+    private String[][] informacaoJogadores;
+    private String[][] abismosEFerramentas;
+    private ArrayList<Jogador> jogadores = new ArrayList<>();
+    private int contadorTurnos = 1;
+    private int tamanhoTabuleiro;
+    private Tabuleiro tabuleiro;
+    private HashMap<String, Integer> turnosSaltados = new HashMap<>();
+    private int ultimoLancamentoDado = 0;
+    private String jogadorAtual;
+    private EstadoJogo estadoJogo;
+    private Map<String, Integer> turnosPorJogador = new HashMap<>();
+    private HashMap<Integer, String> presoNoCicloPorPosicao = new HashMap<>();
 
     public GameManager() {
     }
 
-    public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
-        if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4) {
+    public boolean createInitialBoard(String[][] informacaoJogadores, int tamanhoMundo, String[][] abismosEFerramentas) {
+        if (informacaoJogadores == null || informacaoJogadores.length < 2 || informacaoJogadores.length > 4) {
             return false;
         }
-        if (worldSize < (2 * playerInfo.length)) {
+        if (tamanhoMundo < (2 * informacaoJogadores.length)) {
             return false;
         }
+        this.abismosEFerramentas = abismosEFerramentas;
+        this.informacaoJogadores = informacaoJogadores;
+        this.tamanhoTabuleiro = tamanhoMundo;
+        this.tabuleiro = new Tabuleiro(tamanhoMundo);
+        this.jogadores.clear();
+        this.turnosSaltados.clear();
+        this.presoNoCicloPorPosicao.clear();
+        this.turnosPorJogador.clear();
 
-
-        this.playerInfo = playerInfo;
-        this.boardSize = worldSize;
-        this.positions = new HashMap<>();
-        this.gameBoard = new Board(worldSize);
-        this.players.clear();
-        this.skippedTurns.clear();
-
-
-        for (String[] jogador : playerInfo) {
-            if (jogador == null || jogador.length != 4) {
+        for (String[] jogadorInfo : informacaoJogadores) {
+            if (jogadorInfo == null || jogadorInfo.length != 4) {
                 return false;
             }
-            for (String campo : jogador) {
-                if (campo == null) {
+            for (String campo : jogadorInfo) {
+                if (campo == null || campo.trim().isEmpty()) {
                     return false;
                 }
             }
 
-            Player p = new Player(jogador[0], jogador[1], jogador[2], jogador[3]);
-            p.setAlive(true);
-            players.add(p);
-            gameBoard.addPlayer(p);
+            Jogador jogador = new Jogador(jogadorInfo[0], jogadorInfo[1], jogadorInfo[2], jogadorInfo[3]);
+            jogador.setVivo(true);
+            jogadores.add(jogador);
+            tabuleiro.adicionarJogador(jogador);
         }
 
+        jogadores.sort(Comparator.comparingInt(j -> Integer.parseInt(j.getId())));
+        jogadorAtual = jogadores.get(0).getId();
+        estadoJogo = EstadoJogo.EM_ANDAMENTO;
+        contadorTurnos = 1;
 
-        players.sort(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
-        currentPlayer = players.get(0).getId();
-        gameState = EstadoJogo.EM_ANDAMENTO;
-        turnCount = 1;
-
-
-        if (abyssesAndTools != null) {
-            for (String[] item : abyssesAndTools) {
+        if (abismosEFerramentas != null) {
+            for (String[] item : abismosEFerramentas) {
                 if (item == null || item.length != 3) {
                     return false;
                 }
 
                 try {
-                    int type = Integer.parseInt(item[0]);
-                    int idSubtype = Integer.parseInt(item[1]);
-                    int position = Integer.parseInt(item[2]);
+                    int tipo = Integer.parseInt(item[0]);
+                    int idSubtipo = Integer.parseInt(item[1]);
+                    int posicao = Integer.parseInt(item[2]);
 
-
-                    if (position < 1 || position > worldSize) {
+                    if (posicao < 1 || posicao > tamanhoMundo) {
                         return false;
                     }
-                    if (gameBoard.getObjectAt(position) != null) {
-                        return false; // Apenas 1 objeto por casa
+                    if (tabuleiro.getAbismoOuFerramenta(posicao) != null) {
+                        return false;
                     }
 
-
-                    if (type == 0) {
-
-                        String name = getAbyssName(idSubtype);
-                        if (name == null) {
+                    if (tipo == 0) {
+                        AbismoPai abismo = CriacaoAbismo.criarAbismo(idSubtipo, posicao);
+                        if (abismo == null) {
                             return false;
                         }
-                        Abyss abyss = new Abyss(idSubtype, name, position);
-                        gameBoard.placeObject(abyss);
-                    } else if (type == 1) {
-
-                        String name = getToolName(idSubtype);
-                        if (name == null) {
+                        tabuleiro.posicionarObjeto(abismo);
+                    } else if (tipo == 1) {
+                        String nome = getNomeFerramenta(idSubtipo);
+                        if (nome == null) {
                             return false;
                         }
-                        Tool tool = new Tool(idSubtype, name, position);
-                        gameBoard.placeObject(tool);
+                        Ferramenta ferramenta = new Ferramenta(idSubtipo, nome, posicao);
+                        tabuleiro.posicionarObjeto(ferramenta);
                     } else {
                         return false;
                     }
@@ -112,469 +104,472 @@ public class GameManager {
         return true;
     }
 
-    private String getAbyssName(int id) {
+    public boolean createInitialBoard(String[][] informacaoJogadores, int tamanhoMundo) {
+        return createInitialBoard(informacaoJogadores, tamanhoMundo, null);
+    }
+
+    private String getNomeAbismo(int id) {
         switch (id) {
-            case 0:
-                return "Erro de sintaxe";
-            case 1:
-                return "Erro de lógica";
-            case 2:
-                return "Exception";
-            case 3:
-                return "FileNotFoundException";
-            case 4:
-                return "Crash";
-            case 5:
-                return "Código duplicado";
-            case 6:
-                return "Efeitos secundários";
-            case 7:
-                return "Blue Screen of Death";
-            case 8:
-                return "Ciclo Infinito";
-            case 9:
-                return "Segmentation fault";
-            case 20:
-                return "LLM";
-            default:
-                return null;
+            case 0: return "Erro de sintaxe";
+            case 1: return "Erro de lógica";
+            case 2: return "Exception";
+            case 3: return "FileNotFoundException";
+            case 4: return "Crash";
+            case 5: return "Código duplicado";
+            case 6: return "Efeitos secundários";
+            case 7: return "Blue Screen of Death";
+            case 8: return "Ciclo Infinito";
+            case 9: return "Segmentation fault";
+            case 20: return "LLM";
+            default: return null;
         }
     }
 
-    private String getToolName(int id) {
+    private String getNomeFerramenta(int id) {
         switch (id) {
-            case 0:
-                return "Herança";
-            case 1:
-                return "Programação Funcional";
-            case 2:
-                return "Testes Unitários";
-            case 3:
-                return "Tratamento de Excepções";
-            case 4:
-                return "IDE";
-            case 5:
-                return "Ajuda Do Professor";
-            default:
-                return null;
+            case 0: return "Herança";
+            case 1: return "Programação Funcional";
+            case 2: return "Testes Unitários";
+            case 3: return "Tratamento de Excepções";
+            case 4: return "IDE";
+            case 5: return "Ajuda Do Professor";
+            default: return null;
         }
     }
 
-    public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
-        return createInitialBoard(playerInfo, worldSize, null);
-    }
-
-    public int getCurrentPlayerID() {
-        return Integer.parseInt(currentPlayer);
-    }
-
-    public String reactToAbyssOrTool() {
-        Player p = getPlayerById(currentPlayer);
-        if (p == null) {
+    public String getImagePng(int nrSquare) {
+        if (nrSquare < 1 || nrSquare > tamanhoTabuleiro || tabuleiro == null) {
             return null;
         }
 
-        int pos = p.getPosicao();
-        AbyssOrTool obj = gameBoard.getObjectAt(pos);
-
-        String resultado = null;
-
-        if (obj == null) {
-            advanceToNextPlayer();
-            return null;
+        if (nrSquare == tamanhoTabuleiro) {
+            return "glory.png";
         }
 
-        resultado = obj.apply(p, this);
+        if (this.abismosEFerramentas != null) {
+            String posicaoProcurada = String.valueOf(nrSquare);
 
-        if (gameState != EstadoJogo.TERMINADO && p.isAlive()) {
-            advanceToNextPlayer();
+            // Percorre o array de configuração inicial
+            for (String[] item : this.abismosEFerramentas) {
+
+                // Verifica se a posição do item no array corresponde ao nrSquare
+                if (item.length == 3 && item[2].equals(posicaoProcurada)) {
+
+                    // Encontrou o item na posição nrSquare
+                    int tipo = Integer.parseInt(item[0]);      // 0 ou 1
+                    int idSubtipo = Integer.parseInt(item[1]); // ID
+
+                    if (tipo == 0) { // Abismo
+                    } else if (tipo == 1) { // Ferramenta
+                    }
+                }
+            }
         }
 
-        return resultado;
+        // Retorna null se não houver Abismo/Ferramenta nessa posição no array inicial
+        return null;
     }
 
-    ;
-
-    public boolean moveCurrentPlayer(int nrSpaces) {
-        if (gameState == EstadoJogo.TERMINADO || gameBoard == null) {
-            return false;
-        }
-
-        if (currentPlayer == null) {
-            return false;
-        }
-
-        Player atual = getPlayerById(currentPlayer);
-
-
-        if (atual == null || !atual.isAlive()) {
-            advanceToNextPlayer();
-            return false;
-        }
-
-
-        Integer skips = skippedTurns.getOrDefault(atual.getId(), 0);
-        if (skips > 0) {
-
-            skippedTurns.put(atual.getId(), skips - 1);
-
-            if (skippedTurns.get(atual.getId()) == 0) {
-                skippedTurns.remove(atual.getId());
-            }
-
-            turnCount++;
-            advanceToNextPlayer();
-            return false;
-        }
-
-
-        if (nrSpaces < 1 || nrSpaces > 6) {
-            return false;
-        }
-
-
-        String linguagem = atual.getLinguagens(); // Ex: "C;Java" ou "Assembly;C#"
-
-        if (linguagem != null && !linguagem.isEmpty()) {
-            String firstLang = linguagem;
-            if (linguagem.contains(";")) {
-                firstLang = linguagem.split(";")[0];
-            }
-            String trimmedFirstLang = firstLang.trim();
-
-
-            if (trimmedFirstLang.equalsIgnoreCase("C") && nrSpaces >= 4) {
-                return false;
-            }
-
-
-            if (trimmedFirstLang.equalsIgnoreCase("Assembly") && nrSpaces >= 3) {
-                return false;
-            }
-        }
-
-
-
-        gameBoard.movePlayer(atual, nrSpaces);
-        this.lastDiceRoll = nrSpaces;
-        turnCount++;
-
-
-        if (gameBoard.isAtEnd(atual)) {
-            gameState = EstadoJogo.TERMINADO;
-            return true;
-        }
-
-        return true;
-    }
-
-    public boolean gameIsOver() {
-        return gameState == EstadoJogo.TERMINADO;
-    }
-
-    public ArrayList<String> getGameResults() {
-        ArrayList<String> results = new ArrayList<>();
-
-        if (!gameIsOver()) {
-            return results;
-        }
-
-        results.add("THE GREAT PROGRAMMING JOURNEY");
-        results.add("");
-        results.add("NR. DE TURNOS");
-        results.add(String.valueOf(turnCount));
-        results.add("");
-        results.add("VENCEDOR");
-
-        String vencedor = getWinnerName();
-        if (vencedor != null) {
-            results.add(vencedor);
-        } else {
-            results.add("Desconhecido");
-        }
-
-        results.add("");
-        results.add("RESTANTES");
-
-        List<Player> restantes = new ArrayList<>();
-
-        for (Player p : players) {
-            if (!p.getNome().equals(vencedor)) {
-                restantes.add(p);
-            }
-        }
-
-        restantes.sort((a, b) -> b.getPosicao() - a.getPosicao());
-
-        for (Player p : restantes) {
-            results.add(p.getNome() + " " + p.getPosicao());
-        }
-
-        return results;
-    }
-
-    public String getWinnerName() {
-        for (Player p : players) {
-            if (gameBoard.isAtEnd(p)) {
-                return p.getNome();
+    public String[] getProgrammerInfo(int id) {
+        for (Jogador jogador : jogadores) {
+            if (Integer.parseInt(jogador.getId()) == id) {
+                return jogador.toArray();
             }
         }
         return null;
     }
 
     public String getProgrammersInfo() {
-        List<String> infoParts = new ArrayList<>();
+        ArrayList<String> partesInfo = new ArrayList<>();
 
-        for (Player p : players) {
-            if (p.isAlive()) {
-                String nome = p.getNome();
-                List<String> tools = p.getFerramentas();
+        for (Jogador jogador : jogadores) {
+            if (jogador.estaVivo()) {
+                String nome = jogador.getNome();
+                ArrayList<String> ferramentas = jogador.getFerramentas();
 
-                String toolsStr;
-                if (tools.isEmpty()) {
-                    toolsStr = "No tools";
+                String stringFerramentas;
+                if (ferramentas.isEmpty()) {
+                    stringFerramentas = "No tools";
                 } else {
-                    toolsStr = String.join(";", tools);
+                    stringFerramentas = String.join(";", ferramentas);
                 }
 
-                infoParts.add(nome + " : " + toolsStr);
+                partesInfo.add(nome + " : " + stringFerramentas);
             }
         }
 
-        return String.join(" | ", infoParts);
-    }
-
-
-    public String[] getProgrammerInfo(int id) {
-        for (Player p : players) {
-            if (Integer.parseInt(p.getId()) == id) {
-                return p.toArray();
-            }
-        }
-        return null;
+        return String.join(" | ", partesInfo);
     }
 
     public String getProgrammerInfoAsStr(int id) {
-        Player p = getPlayerById(String.valueOf(id));
-        if (p == null) {
+        Jogador jogador = getJogadorById(String.valueOf(id));
+        if (jogador == null) {
             return null;
         }
 
-        String tools = p.getFerramentas().isEmpty() ? "No tools"
-                : String.join("; ", p.getFerramentas());
+        String ferramentas = jogador.getFerramentas().isEmpty() ? "No tools"
+                : String.join("; ", jogador.getFerramentas());
 
         String estado;
-        if (!p.isAlive()) {
+        if (!jogador.estaVivo()) {
             estado = "Derrotado";
-        } else if (skippedTurns.containsKey(p.getId()) && skippedTurns.get(p.getId()) > 0) {
+        } else if ((turnosSaltados.getOrDefault(jogador.getId(), 0) > 0) || estaPresoNoCiclo(jogador)) {
             estado = "Preso";
         } else {
             estado = "Em Jogo";
         }
 
-
-        return p.getId() + " | " + p.getNome() + " | " + p.getPosicao() + " | " + tools +
-                " | " + p.getLinguagensOrdenadas() + " | " + estado;
+        return jogador.getId() + " | " + jogador.getNome() + " | " + jogador.getPosicao() + " | " + ferramentas +
+                " | " + jogador.getLinguagensOrdenadas() + " | " + estado;
     }
 
     public String[] getSlotInfo(int position) {
-        return gameBoard.getSlotInfo(position);
+        return tabuleiro.getSlotInfo(position);
     }
 
-    public String getImagePng(int nrSquare) {
-        if (nrSquare < 1 || nrSquare > boardSize) {
+    public int getCurrentPlayerID() {
+        return Integer.parseInt(jogadorAtual);
+    }
+
+    public boolean moveCurrentPlayer(int numeroEspacos) {
+        if (estadoJogo == EstadoJogo.TERMINADO || tabuleiro == null) {
+            return false;
+        }
+
+        if (jogadorAtual == null) {
+            return false;
+        }
+
+        Jogador atual = getJogadorById(jogadorAtual);
+
+        if (atual == null || !atual.estaVivo()) {
+            return false;
+        }
+
+        if (jogadorEstaPresoNoCiclo(atual.getId())) {
+            contadorTurnos++;
+            return false;
+        }
+
+        int saltos = turnosSaltados.getOrDefault(atual.getId(), 0);
+        if (saltos > 0) {
+            saltos--;
+            if (saltos <= 0) {
+                turnosSaltados.remove(atual.getId());
+            } else {
+                turnosSaltados.put(atual.getId(), saltos);
+            }
+            contadorTurnos++;
+            return false;
+        }
+
+        boolean isEasterEgg = numeroEspacos < 0;
+        int espacosEfetivos = isEasterEgg ? Math.abs(numeroEspacos) : numeroEspacos;
+
+        if (!isEasterEgg) {
+            if (numeroEspacos < 1 || numeroEspacos > 6) {
+                return false;
+            }
+
+            String linguagem = atual.getLinguagensFavoritas();
+            if (linguagem != null && !linguagem.isEmpty()) {
+                String primeira = linguagem.contains(";") ? linguagem.split(";")[0] : linguagem;
+                primeira = primeira.trim();
+
+                if (primeira.equalsIgnoreCase("C") && numeroEspacos >= 4) {
+                    return false;
+                }
+
+                if (primeira.equalsIgnoreCase("Assembly") && numeroEspacos >= 3) {
+                    return false;
+                }
+            }
+        }
+
+        tabuleiro.moverJogador(atual, espacosEfetivos);
+
+        turnosPorJogador.put(atual.getId(), turnosPorJogador.getOrDefault(atual.getId(), 0) + 1);
+
+        ultimoLancamentoDado = espacosEfetivos;
+        contadorTurnos++;
+
+        if (tabuleiro.verificaFinal(atual)) {
+            estadoJogo = EstadoJogo.TERMINADO;
+            return true;
+        }
+
+        return true;
+    }
+
+
+    public Map<String, Integer> getTurnosPorJogador() {
+        return turnosPorJogador;
+    }
+
+    public String reactToAbyssOrTool() {
+        Jogador jogador = getJogadorById(jogadorAtual);
+        if (jogador == null) {
             return null;
         }
-        return nrSquare == boardSize ? "final.png" : "imagem" + nrSquare + ".png";
+
+        int pos = jogador.getPosicao();
+        AbismoOuFerramenta objeto = tabuleiro.getAbismoOuFerramenta(pos);
+
+        if (objeto == null) {
+            if (estadoJogo != EstadoJogo.TERMINADO && jogador.estaVivo()) {
+                avancarParaProximoJogador();
+            }
+            return null;
+        }
+
+        String resultado = objeto.aplicaJogador(jogador, this);
+
+        if (estadoJogo != EstadoJogo.TERMINADO && jogador.estaVivo()) {
+            avancarParaProximoJogador();
+        }
+
+        return resultado;
     }
 
-    public JPanel getAuthorsPanel() {
+    public boolean gameIsOver() {
+        if (getVencedorNome() != null) {
+            return true;
+        }
+
+        return !existeJogadorEmJogo();
+    }
+
+    public boolean existeJogadorEmJogo() {
+        for (Jogador j : jogadores) {
+            if (!j.estaVivo()) {
+                continue;
+            }
+
+            int presoTurnos = turnosSaltados.getOrDefault(j.getId(), 0);
+            boolean presoCiclo = estaPresoNoCiclo(j);
+
+            if (presoTurnos <= 0 && !presoCiclo) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public boolean estaPresoNoCiclo(Jogador jogador) {
+        return jogador != null && jogadorEstaPresoNoCiclo(jogador.getId());
+    }
+
+    public void prenderNoCiclo(int posicao, String jogadorId) {
+        if (jogadorId == null) {
+            return;
+        }
+        presoNoCicloPorPosicao.put(posicao, jogadorId);
+    }
+
+    public void libertarPresoDoCiclo(int posicao) {
+        presoNoCicloPorPosicao.remove(posicao);
+    }
+
+    public String getPresoDoCiclo(int posicao) {
+        return presoNoCicloPorPosicao.get(posicao);
+    }
+
+    public boolean jogadorEstaPresoNoCiclo(String jogadorId) {
+        if (jogadorId == null) {
+            return false;
+        }
+        return presoNoCicloPorPosicao.containsValue(jogadorId);
+    }
+
+    public void limparTurnosSaltados(Jogador jogador) {
+        if (jogador == null) {
+            return;
+        }
+        turnosSaltados.remove(jogador.getId());
+    }
+
+    public HashMap<String, Integer> getTurnosSaltados() {
+        return turnosSaltados;
+    }
+
+    public ArrayList<String> getGameResults() {
+        ArrayList<String> resultados = new ArrayList<>();
+
+        if (!gameIsOver()) {
+            return resultados;
+        }
+
+        if (!existeJogadorEmJogo()) {
+            resultados.add("THE GREAT PROGRAMMING JOURNEY");
+            resultados.add("");
+            resultados.add("NR. DE TURNOS");
+            resultados.add(String.valueOf(contadorTurnos));
+            resultados.add("");
+            resultados.add("O jogo terminou empatado.");
+            resultados.add("");
+            resultados.add("Participantes:");
+
+            ArrayList<Jogador> participantes = new ArrayList<>();
+
+            for (Jogador jogador : jogadores) {
+                participantes.add(jogador);
+            }
+
+            participantes.sort((a, b) -> b.getPosicao() - a.getPosicao());
+
+            for (Jogador jogador : participantes) {
+                int ultimaPos = jogador.getPosicao();
+                AbismoOuFerramenta slot = tabuleiro.getAbismoOuFerramenta(ultimaPos);
+
+                String nomeUltimoAbismo = "";
+
+                if (slot != null && slot.getTipo().equals("Abismo")) {
+                    nomeUltimoAbismo = slot.getNome();
+                }
+
+                resultados.add(jogador.getNome() + " : " + jogador.getPosicao() + " : " + nomeUltimoAbismo);
+            }
+            return resultados;
+        }
+
+        resultados.add("THE GREAT PROGRAMMING JOURNEY");
+        resultados.add("");
+        resultados.add("NR. DE TURNOS");
+        resultados.add(String.valueOf(contadorTurnos));
+        resultados.add("");
+        resultados.add("VENCEDOR");
+
+        String vencedor = getVencedorNome();
+        if (vencedor != null) {
+            resultados.add(vencedor);
+        } else {
+            resultados.add("Desconhecido");
+        }
+
+        resultados.add("");
+        resultados.add("RESTANTES");
+
+        ArrayList<Jogador> restantes = new ArrayList<>();
+
+        for (Jogador jogador : jogadores) {
+            if (!jogador.getNome().equals(vencedor)) {
+                restantes.add(jogador);
+            }
+        }
+
+        restantes.sort((a, b) -> b.getPosicao() - a.getPosicao());
+
+        for (Jogador jogador : restantes) {
+            resultados.add(jogador.getNome() + " " + jogador.getPosicao());
+        }
+
+        return resultados;
+    }
+
+    public String getVencedorNome() {
+        for (Jogador jogador : jogadores) {
+            if (tabuleiro.verificaFinal(jogador)) {
+                return jogador.getNome();
+            }
+        }
         return null;
-    }
-
-    public HashMap<String, String> customizeBoard() {
-        return new HashMap<>();
-    }
-
-    public Player getPlayerById(String id) {
-        for (Player p : players) {
-            if (p.getId().equals(id)) {
-                return p;
-            }
-        }
-        return null;
-    }
-
-    public void skipTurns(Player p, int n) {
-        if (p == null || n <= 0) {
-            return;
-        }
-        skippedTurns.put(p.getId(), skippedTurns.getOrDefault(p.getId(), 0) + n);
-    }
-
-    public void eliminatePlayer(Player p) {
-        if (p == null) {
-            return;
-        }
-
-        p.setAlive(false);
-
-
-        int aliveCount = 0;
-        Player lastAlivePlayer = null;
-
-
-        for (Player player : players) {
-            if (player.isAlive()) {
-                aliveCount++;
-                lastAlivePlayer = player;
-            }
-        }
-
-        if (aliveCount <= 1) {
-            gameState = EstadoJogo.TERMINADO;
-            if (aliveCount == 1) {
-                currentPlayer = lastAlivePlayer.getId();
-            } else {
-                currentPlayer = null; // Ninguém sobreviveu
-            }
-            return;
-        }
-
-        if (currentPlayer.equals(p.getId())) {
-            advanceToNextPlayer();
-        }
-    }
-
-    private void advanceToNextPlayer() {
-        if (players.isEmpty()) {
-            currentPlayer = null;
-            return;
-        }
-
-        int startIndex = 0;
-        for (int i = 0; i < players.size(); i++) {
-            if (players.get(i).getId().equals(currentPlayer)) {
-                startIndex = i;
-                break;
-            }
-        }
-
-        for (int i = 1; i <= players.size(); i++) {
-            int nextIndex = (startIndex + i) % players.size();
-            Player nextPlayer = players.get(nextIndex);
-
-            if (nextPlayer.isAlive()) {
-                currentPlayer = nextPlayer.getId();
-                return;
-            }
-        }
-        currentPlayer = null;
-        gameState = EstadoJogo.TERMINADO;
     }
 
     public void loadGame(File file) throws InvalidFileException, FileNotFoundException {
-        players.clear();
-        skippedTurns.clear();
-        gameBoard = null;
-        currentPlayer = null;
-        gameState = EstadoJogo.EM_ANDAMENTO;
-        turnCount = 1;
-        lastDiceRoll = 0;
-        boardSize = 0;
+        jogadores.clear();
+        turnosSaltados.clear();
+        tabuleiro = null;
+        jogadorAtual = null;
+        estadoJogo = EstadoJogo.EM_ANDAMENTO;
+        contadorTurnos = 1;
+        ultimoLancamentoDado = 0;
+        tamanhoTabuleiro = 0;
 
-
-        List<String> lines = new ArrayList<>();
-        try (Scanner scanner = new Scanner(file)) {
+        ArrayList<String> linhas = new ArrayList<>();
+        try (java.util.Scanner scanner = new java.util.Scanner(file)) {
             while (scanner.hasNextLine()) {
-                lines.add(scanner.nextLine());
+                linhas.add(scanner.nextLine());
             }
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("Ficheiro não encontrado: " + file.getName());
         }
 
-        if (lines.isEmpty() || !lines.get(0).equals("GPJ_SAVE_FILE")) {
+        if (linhas.isEmpty() || !linhas.get(0).equals("GPJ_SAVE_FILE")) {
             throw new InvalidFileException("Cabeçalho de ficheiro inválido.");
         }
 
-        List<String[]> playerData = new ArrayList<>();
-        List<String[]> objectData = new ArrayList<>();
+        ArrayList<String[]> dadosJogadores = new ArrayList<>();
+        ArrayList<String[]> dadosObjetos = new ArrayList<>();
 
-
-        for (String line : lines) {
-            if (line.isEmpty() || line.startsWith("GPJ_SAVE_FILE")) {
+        for (String linha : linhas) {
+            if (linha.isEmpty() || linha.startsWith("GPJ_SAVE_FILE")) {
                 continue;
             }
 
-            String[] parts = line.split("\\|", -1);
-            String type = parts[0];
+            String[] partes = linha.split("\\|", -1);
+            String tipo = partes[0];
 
             try {
-                switch (type) {
+                switch (tipo) {
                     case "GS":
-                        // GS|<boardSize>|<turnCount>|<currentPlayer>|<gameState>|<lastDiceRoll>
-                        if (parts.length != 6) {
+                        if (partes.length != 6) {
                             throw new InvalidFileException("Linha GS corrompida.");
                         }
-                        boardSize = Integer.parseInt(parts[1]);
-                        turnCount = Integer.parseInt(parts[2]);
-                        currentPlayer = parts[3];
-                        gameState = EstadoJogo.valueOf(parts[4]);
-                        lastDiceRoll = Integer.parseInt(parts[5]);
-                        gameBoard = new Board(boardSize);
+                        tamanhoTabuleiro = Integer.parseInt(partes[1]);
+                        contadorTurnos = Integer.parseInt(partes[2]);
+                        jogadorAtual = partes[3];
+                        estadoJogo = EstadoJogo.valueOf(partes[4]);
+                        ultimoLancamentoDado = Integer.parseInt(partes[5]);
+                        tabuleiro = new Tabuleiro(tamanhoTabuleiro);
                         break;
                     case "ST":
-                        // ST|<PlayerID>|<TurnsLeft>
-                        if (parts.length != 3) {
+                        if (partes.length != 3) {
                             throw new InvalidFileException("Linha ST corrompida.");
                         }
-                        skippedTurns.put(parts[1], Integer.parseInt(parts[2]));
+                        turnosSaltados.put(partes[1], Integer.parseInt(partes[2]));
                         break;
                     case "P":
-                        // P|<ID>|<Nome>|<Linguagens>|<Cor>|<Posicao>|<Alive>|<lastPosition>|<secondLastPosition>|<Tool1;Tool2;...>
-                        if (parts.length != 10) {
+                        if (partes.length != 10) {
                             throw new InvalidFileException("Linha P corrompida.");
                         }
-                        playerData.add(parts);
+                        dadosJogadores.add(partes);
                         break;
                     case "O":
-                        // O|<Type:A/T>|<SubtypeID>|<Position>
-                        if (parts.length != 4) {
+                        if (partes.length != 4) {
                             throw new InvalidFileException("Linha O corrompida.");
                         }
-                        objectData.add(parts);
+                        dadosObjetos.add(partes);
                         break;
                     default:
-
+                        // Ignorar outras linhas
                 }
             } catch (Exception e) {
-                throw new InvalidFileException("Corrupção de dados na linha: " + line);
+                throw new InvalidFileException("Corrupção de dados na linha: " + linha);
             }
         }
 
-        if (boardSize == 0) {
+        if (tamanhoTabuleiro == 0) {
             throw new InvalidFileException("Tamanho do tabuleiro não definido.");
         }
 
-        restorePlayers(playerData);
+        restaurarJogadores(dadosJogadores);
+        restaurarObjetosJogo(dadosObjetos);
 
-        restoreGameObjects(objectData);
-
-
-        boolean currentPlayerIsValid = false;
-        Player firstActive = null;
-        for (Player p : players) {
-            if (p.getId().equals(currentPlayer) && p.isAlive()) {
-                currentPlayerIsValid = true;
+        boolean jogadorAtualValido = false;
+        Jogador primeiroAtivo = null;
+        for (Jogador jogador : jogadores) {
+            if (jogador.getId().equals(jogadorAtual) && jogador.estaVivo()) {
+                jogadorAtualValido = true;
             }
 
-            if (p.isAlive() && firstActive == null) {
-                firstActive = p;
+            if (jogador.estaVivo() && primeiroAtivo == null) {
+                primeiroAtivo = jogador;
             }
         }
 
-        if (!currentPlayerIsValid) {
-            currentPlayer = (firstActive != null) ? firstActive.getId() : null;
+        if (!jogadorAtualValido) {
+            jogadorAtual = (primeiroAtivo != null) ? primeiroAtivo.getId() : null;
         }
     }
 
@@ -582,31 +577,27 @@ public class GameManager {
         try (FileWriter writer = new FileWriter(file)) {
             writer.write("GPJ_SAVE_FILE\n");
 
+            String estadoJogoStr = estadoJogo.name();
+            String linhaEstadoGlobal = "GS|" + tamanhoTabuleiro + "|" + contadorTurnos + "|" + jogadorAtual + "|" + estadoJogoStr + "|" + ultimoLancamentoDado + "\n";
+            writer.write(linhaEstadoGlobal);
 
-            String gameStateStr = gameState.name();
-            String globalStateLine = "GS|" + boardSize + "|" + turnCount + "|" + currentPlayer + "|" + gameStateStr + "|" + lastDiceRoll + "\n";
-            writer.write(globalStateLine);
-
-            // 3. Turnos Saltados
-            for (Map.Entry<String, Integer> entry : skippedTurns.entrySet()) {
-                // ST|<PlayerID>|<TurnsLeft>
+            for (Map.Entry<String, Integer> entry : turnosSaltados.entrySet()) {
                 writer.write("ST|" + entry.getKey() + "|" + entry.getValue() + "\n");
             }
 
-
-            for (Player p : players) {
-                String toolsStr = String.join(";", p.getFerramentas());
-                String playerLine = "P|" + p.getId() + "|" + p.getNome() + "|" + p.getLinguagens() + "|" + p.getCor() + "|" +
-                        p.getPosicao() + "|" + p.isAlive() + "|" + p.getLastPosition() + "|" + p.getSecondLastPosition() + "|" + toolsStr + "\n";
-                writer.write(playerLine);
+            for (Jogador jogador : jogadores) {
+                String stringFerramentas = String.join(";", jogador.getFerramentas());
+                String linhaJogador = "P|" + jogador.getId() + "|" + jogador.getNome() + "|" + jogador.getLinguagensFavoritas() + "|" + jogador.getCorAvatar() + "|" +
+                        jogador.getPosicao() + "|" + jogador.estaVivo() + "|" + jogador.getUltimaPosicao() + "|" + jogador.getPenultimaPosicao() + "|" + stringFerramentas + "\n";
+                writer.write(linhaJogador);
             }
 
-            if (gameBoard != null) {
-                for (int i = 1; i <= boardSize; i++) {
-                    AbyssOrTool obj = gameBoard.getObjectAt(i);
-                    if (obj != null) {
-                        String typeChar = "Abyss".equals(obj.getType()) ? "A" : "T";
-                        writer.write("O|" + typeChar + "|" + obj.getId() + "|" + obj.getPosition() + "\n");
+            if (tabuleiro != null) {
+                for (int i = 1; i <= tamanhoTabuleiro; i++) {
+                    AbismoOuFerramenta objeto = tabuleiro.getAbismoOuFerramenta(i);
+                    if (objeto != null) {
+                        String tipoChar = "Abismo".equals(objeto.getTipo()) ? "A" : "T";
+                        writer.write("O|" + tipoChar + "|" + objeto.getId() + "|" + objeto.getPosicao() + "\n");
                     }
                 }
             }
@@ -617,81 +608,206 @@ public class GameManager {
         }
     }
 
-    public void setPlayerPosition(Player p, int newPos) {
-        if (p == null || gameBoard == null) {
-            return;
-        }
+    public JPanel getAuthorsPanel() {
+        JPanel panel = new JPanel();
+        panel.setPreferredSize(new Dimension(300, 300));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        int oldPos = p.getPosicao();
+        JLabel titulo = new JLabel("CRÉDITOS", SwingConstants.CENTER);
+        titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(titulo);
 
-        gameBoard.updatePlayerPosition(p, oldPos, newPos);
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        p.setPosicao(newPos);
+        JLabel autor1 = new JLabel("Rafael Magalhês - a22407372");
+        JLabel autor2 = new JLabel("Diogo Alves - a22407372");
+
+        autor1.setAlignmentX(Component.CENTER_ALIGNMENT);
+        autor2.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        panel.add(autor1);
+        panel.add(autor2);
+
+        return panel;
     }
 
-    public List<String> getPlayersInSlot(int pos) {
-        return gameBoard.getPlayersInSlot(pos);
+    public HashMap<String, String> customizeBoard() {
+        return new HashMap<>();
     }
 
     public int getLastDiceRoll() {
-        return lastDiceRoll;
+        return ultimoLancamentoDado;
     }
 
-    private void restoreGameObjects(List<String[]> objectData) throws InvalidFileException {
-        for (String[] data : objectData) {
-            String typeChar = data[1];
-            int idSubtype = Integer.parseInt(data[2]);
-            int position = Integer.parseInt(data[3]);
+    public Jogador getJogadorById(String id) {
+        for (Jogador jogador : jogadores) {
+            if (jogador.getId().equals(id)) {
+                return jogador;
+            }
+        }
+        return null;
+    }
 
-            AbyssOrTool obj = null;
-            if (typeChar.equals("A")) {
-                String name = getAbyssName(idSubtype);
-                if (name == null) {
+    public void avancarParaProximoJogador() {
+        if (jogadores.isEmpty()) {
+            jogadorAtual = null;
+            return;
+        }
+
+        int indiceInicial = 0;
+        for (int i = 0; i < jogadores.size(); i++) {
+            if (jogadores.get(i).getId().equals(jogadorAtual)) {
+                indiceInicial = i;
+                break;
+            }
+        }
+
+        for (int i = 1; i <= jogadores.size(); i++) {
+            int proximoIndice = (indiceInicial + i) % jogadores.size();
+            Jogador proximoJogador = jogadores.get(proximoIndice);
+
+            if (proximoJogador.estaVivo()) {
+                jogadorAtual = proximoJogador.getId();
+                return;
+            }
+        }
+
+        jogadorAtual = null;
+        estadoJogo = EstadoJogo.TERMINADO;
+    }
+
+
+
+    public void skipTurns(Jogador jogador, int n) {
+        if (jogador == null || n <= 0) {
+            return;
+        }
+        turnosSaltados.put(jogador.getId(), turnosSaltados.getOrDefault(jogador.getId(), 0) + n);
+    }
+
+    public void eliminatePlayer(Jogador jogador) {
+        if (jogador == null) {
+            return;
+        }
+
+        jogador.setVivo(false);
+
+        int contagemVivos = 0;
+        Jogador ultimoJogadorVivo = null;
+
+        for (Jogador j : jogadores) {
+            if (j.estaVivo()) {
+                contagemVivos++;
+                ultimoJogadorVivo = j;
+            }
+        }
+
+        if (contagemVivos <= 1) {
+            estadoJogo = EstadoJogo.TERMINADO;
+            if (contagemVivos == 1) {
+                jogadorAtual = ultimoJogadorVivo.getId();
+            } else {
+                jogadorAtual = null;
+            }
+            return;
+        }
+
+        if (jogadorAtual.equals(jogador.getId())) {
+            avancarParaProximoJogador();
+        }
+    }
+
+    public void setPlayerPosition(Jogador jogador, int novaPosicao) {
+        if (jogador == null || tabuleiro == null) {
+            return;
+        }
+
+        int posicaoAntiga = jogador.getPosicao();
+        tabuleiro.atualizarPosicaoJogador(jogador, posicaoAntiga, novaPosicao);
+        jogador.setPosicao(novaPosicao);
+    }
+
+    public ArrayList<String> getPlayersInSlot(int pos) {
+        return tabuleiro.getJogadoresNoSlot(pos);
+    }
+
+    private void restaurarObjetosJogo(ArrayList<String[]> dadosObjetos) throws InvalidFileException {
+        for (String[] dados : dadosObjetos) {
+            String tipoChar = dados[1];
+            int idSubtipo = Integer.parseInt(dados[2]);
+            int posicao = Integer.parseInt(dados[3]);
+
+            AbismoOuFerramenta objeto = null;
+            if (tipoChar.equals("A")) {
+                objeto = CriacaoAbismo.criarAbismo(idSubtipo, posicao);
+                if (objeto == null) {
                     throw new InvalidFileException("ID de Abismo inválido no ficheiro.");
                 }
-                obj = new Abyss(idSubtype, name, position);
-            } else if (typeChar.equals("T")) {
-                String name = getToolName(idSubtype);
-                if (name == null) {
+            } else if (tipoChar.equals("T")) {
+                String nome = getNomeFerramenta(idSubtipo);
+                if (nome == null) {
                     throw new InvalidFileException("ID de Ferramenta inválido no ficheiro.");
                 }
-                obj = new Tool(idSubtype, name, position);
+                objeto = new Ferramenta(idSubtipo, nome, posicao);
             }
 
-            if (obj != null) {
-                gameBoard.placeObject(obj);
+            if (objeto != null) {
+                tabuleiro.posicionarObjeto(objeto);
             }
         }
     }
 
-    private void restorePlayers(List<String[]> playerData) throws InvalidFileException {
-        for (String[] data : playerData) {
-            String id = data[1];
-            String nome = data[2];
-            String linguagens = data[3];
-            String cor = data[4];
-            int posicao = Integer.parseInt(data[5]);
-            boolean alive = Boolean.parseBoolean(data[6]);
-            int lastPos = Integer.parseInt(data[7]);
-            int secondLastPos = Integer.parseInt(data[8]);
-            String toolsStr = data[9];
+    private void restaurarJogadores(ArrayList<String[]> dadosJogadores) throws InvalidFileException {
+        for (String[] dados : dadosJogadores) {
+            String id = dados[1];
+            String nome = dados[2];
+            String linguagens = dados[3];
+            String cor = dados[4];
+            int posicao = Integer.parseInt(dados[5]);
+            boolean vivo = Boolean.parseBoolean(dados[6]);
+            int ultimaPos = Integer.parseInt(dados[7]);
+            int penultimaPos = Integer.parseInt(dados[8]);
+            String stringFerramentas = dados[9];
 
-            Player p = new Player(id, nome, linguagens, cor);
-            p.setAlive(alive);
+            Jogador jogador = new Jogador(id, nome, linguagens, cor);
+            jogador.setVivo(vivo);
 
-            p.setPosicaoForLoad(posicao);
-            p.setLastPosition(lastPos);
-            p.setSecondLastPosition(secondLastPos);
+            jogador.setPosicao(posicao);
+            jogador.setUltimaPosicao(ultimaPos);
+            jogador.setPenultimaPosicao(penultimaPos);
 
-            if (!toolsStr.isEmpty()) {
-                p.setFerramentas(new ArrayList<>(Arrays.asList(toolsStr.split(";"))));
+            if (!stringFerramentas.isEmpty()) {
+                ArrayList<String> ferramentasList = new ArrayList<>(Arrays.asList(stringFerramentas.split(";")));
+                jogador.setFerramentas(ferramentasList);
             }
 
-            players.add(p);
-            gameBoard.addPlayerForLoad(p, posicao);
+            jogadores.add(jogador);
+            tabuleiro.adicionarJogadorParaCarregamento(jogador, posicao);
         }
-        players.sort(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
+        jogadores.sort(Comparator.comparingInt(j -> Integer.parseInt(j.getId())));
+    }
+
+    public String getJogadorAtual() {
+        return jogadorAtual;
+    }
+
+    public int getTamanhoTabuleiro() {
+        return tamanhoTabuleiro;
+    }
+
+    public int getContadorTurnos() {
+        return contadorTurnos;
+    }
+
+    public ArrayList<Jogador> getJogadores() {
+        return jogadores;
+    }
+
+    public EstadoJogo getEstadoJogo() {
+        return estadoJogo;
+    }
+
+    public void setEstadoJogo(EstadoJogo estadoJogo) {
+        this.estadoJogo = estadoJogo;
     }
 }
-
-
