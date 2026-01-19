@@ -1,6 +1,7 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
 public abstract class AbyssOrTool {
+
     protected int id;
     protected String name;
     protected int position;
@@ -15,11 +16,8 @@ public abstract class AbyssOrTool {
     public String getName() { return name; }
     public int getPosition() { return position; }
 
-    // Força as subclasses a identificar o seu tipo ("Abyss" ou "Tool")
     public abstract String getType();
 
-    /**
-     * Define o impacto do objeto no jogador.
-     */
+
     public abstract String apply(Player p, GameManager gm);
 }

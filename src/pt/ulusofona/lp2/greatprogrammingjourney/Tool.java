@@ -7,15 +7,18 @@ public class Tool extends AbyssOrTool {
     }
 
     @Override
-    public String getType() { return "Tool"; }
+    public String getType() {
+        return "Tool";
+    }
 
     @Override
     public String apply(Player p, GameManager gm) {
-        // Regra: Não se pode apanhar uma ferramenta duplicada que já esteja no inventário
         if (p.getFerramentas().contains(this.name)) {
+
             return "Já possui " + this.name + ", não apanhou novamente.";
         }
 
+        // Se não tiver, apanha.
         p.addFerramenta(this.name);
         return "Apanhou Ferramenta: " + this.name;
     }
