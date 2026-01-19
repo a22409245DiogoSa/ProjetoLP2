@@ -112,30 +112,6 @@ public class GameManager {
         return true;
     }
 
-    private boolean canMove(Player p) {
-        if (!p.isAlive()) return false;
-        if (skippedTurns.containsKey(p.getId()) && skippedTurns.get(p.getId()) > 0) return false;
-
-        String firstLang = p.getLinguagens().contains(";") ? p.getLinguagens().split(";")[0].trim() : p.getLinguagens().trim();
-        for (int dado = 1; dado <= 6; dado++) {
-            if (firstLang.equalsIgnoreCase("C") && dado >= 4) continue;
-            if (firstLang.equalsIgnoreCase("Assembly") && dado >= 3) continue;
-            return true;
-        }
-        return false;
-    }
-
-    private void checkBlockedGame() {
-        boolean algumPodeMover = false;
-        for (Player p : players) {
-            if (canMove(p)) {
-                algumPodeMover = true;
-                break;
-            }
-        }
-        if (!algumPodeMover) gameState = EstadoJogo.TERMINADO;
-    }
-
     private String getAbyssName(int id) {
         switch (id) {
             case 0:
@@ -155,7 +131,7 @@ public class GameManager {
             case 7:
                 return "Blue Screen of Death";
             case 8:
-                return "Ciclo infinito";
+                return "Ciclo Infinito";
             case 9:
                 return "Segmentation fault";
             case 20:
@@ -214,7 +190,6 @@ public class GameManager {
             advanceToNextPlayer();
         }
 
-        checkBlockedGame();
         return resultado;
     }
 
@@ -290,7 +265,6 @@ public class GameManager {
             return true;
         }
 
-        checkBlockedGame();
         return true;
     }
 
@@ -301,52 +275,43 @@ public class GameManager {
     public ArrayList<String> getGameResults() {
         ArrayList<String> results = new ArrayList<>();
 
-        if (!gameIsOver()) return results;
+        if (!gameIsOver()) {
+            return results;
+        }
 
         results.add("THE GREAT PROGRAMMING JOURNEY");
         results.add("");
         results.add("NR. DE TURNOS");
         results.add(String.valueOf(turnCount));
         results.add("");
+        results.add("VENCEDOR");
 
         String vencedor = getWinnerName();
-        boolean empate = vencedor == null;
-
-        if (empate) {
-            results.add("O jogo terminou empatado.");
-        } else {
-            results.add("VENCEDOR");
+        if (vencedor != null) {
             results.add(vencedor);
+        } else {
+            results.add("Desconhecido");
         }
 
         results.add("");
-        results.add(empate ? "Participantes:" : "RESTANTES");
+        results.add("RESTANTES");
 
-        List<String> info = new ArrayList<>();
+        List<Player> restantes = new ArrayList<>();
+
         for (Player p : players) {
-            String motivo;
-            if (!p.isAlive()) {
-                motivo = p.getLastAbyssHit();
-            } else if (skippedTurns.containsKey(p.getId()) && skippedTurns.get(p.getId()) > 0) {
-                motivo = p.getLastAbyssHit(); // ex: Ciclo Infinito
-            } else {
-                motivo = "Em Jogo";
+            if (!p.getNome().equals(vencedor)) {
+                restantes.add(p);
             }
-
-            info.add(p.getNome() + " : " + p.getPosicao() + " : " + motivo);
         }
 
-        // Ordenar por posição descendente
-        info.sort((a, b) -> Integer.compare(
-                Integer.parseInt(b.split(" : ")[1]),
-                Integer.parseInt(a.split(" : ")[1])
-        ));
+        restantes.sort((a, b) -> b.getPosicao() - a.getPosicao());
 
-        results.addAll(info);
+        for (Player p : restantes) {
+            results.add(p.getNome() + " " + p.getPosicao());
+        }
 
         return results;
     }
-
 
     public String getWinnerName() {
         for (Player p : players) {

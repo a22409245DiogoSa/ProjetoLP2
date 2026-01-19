@@ -112,7 +112,6 @@ public class Abyss extends AbyssOrTool {
 
             default:
                 // Nenhuma ação adicional
-                p.setLastAbyssHit(this.name);
                 break;
         }
 
