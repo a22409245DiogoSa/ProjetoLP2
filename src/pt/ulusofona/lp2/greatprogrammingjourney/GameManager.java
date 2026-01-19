@@ -80,7 +80,7 @@ public class GameManager {
                     }
 
                     if (tipo == 0) {
-                        AbismoPai abismo = CriacaoAbismo.criarAbismo(idSubtipo, posicao);
+                        AbismoPai abismo = CreateAbismo.criarAbismo(idSubtipo, posicao);
                         if (abismo == null) {
                             return false;
                         }
@@ -739,7 +739,7 @@ public class GameManager {
 
             AbismoOuFerramenta objeto = null;
             if (tipoChar.equals("A")) {
-                objeto = CriacaoAbismo.criarAbismo(idSubtipo, posicao);
+                objeto = CreateAbismo.criarAbismo(idSubtipo, posicao);
                 if (objeto == null) {
                     throw new InvalidFileException("ID de Abismo inválido no ficheiro.");
                 }

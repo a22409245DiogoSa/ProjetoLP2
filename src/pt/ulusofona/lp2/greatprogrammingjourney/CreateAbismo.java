@@ -1,6 +1,6 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
-public class CriacaoAbismo {
+public class CreateAbismo {
 
     public static AbismoPai criarAbismo(int id, int posicao) {
         String nome = getAbyssName(id);

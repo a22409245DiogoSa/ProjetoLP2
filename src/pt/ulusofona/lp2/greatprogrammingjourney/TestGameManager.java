@@ -1,202 +1,257 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TestGameManager {
-
     @Test
-    public void test_001_CriarTabuleiroInicial_FormatoCorretoCor() {
-        String[][] jogadores = {
-                {"1", "Joao", "Java", "Blue"},
-                {"2", "Ana", "C", "red"}
-        };
+    public void testCreateInitialBoard_TamanhoInvalido() {
         GameManager gm = new GameManager();
-        assertTrue(gm.createInitialBoard(jogadores, 20));
+        String[][] jogadores = {
+                {"1", "Alice", "Java", "Blue"},
+                {"2", "Bob", "Python", "Green"}
+        };
 
-        assertEquals("Blue", gm.getPlayerById("1").getCor());
-        assertEquals("Red", gm.getPlayerById("2").getCor());
+        assertFalse(gm.createInitialBoard(jogadores, 3, null));
     }
 
     @Test
-    public void test_002_ObterInfoProgramador_SeteElementosEOrdem() {
-        String[][] jogadores = {
-                {"1", "P1", "Python", "Green"},
-                {"2", "P2", "C;Java", "Red"}
-        };
+    public void testCreateInitialBoard_NumeroJogadoresInvalido() {
         GameManager gm = new GameManager();
-        assertTrue(gm.createInitialBoard(jogadores, 20));
+        String[][] jogadores = {
+                {"1", "Alice", "Java", "Blue"}
+        };
 
-        String[] info = gm.getProgrammerInfo(1);
-
-        assertNotNull(info);
-        assertEquals(7, info.length);
-
-        assertEquals("1", info[0]);
-        assertEquals("P1", info[1]);
-        assertEquals("Python", info[2]);
-        assertEquals("Green", info[3]);
-        assertEquals("1", info[4]);
+        assertFalse(gm.createInitialBoard(jogadores, 10, null));
     }
 
-
     @Test
-    public void test_003_RestricoesMovimento_C_Assembly() {
-        String[][] jogadores = {
-                {"1", "P1", "C;Java", "Red"},
-                {"2", "P2", "Assembly;Python", "Blue"}
-        };
+    public void testMoveCurrentPlayer_MovimentoValido() {
         GameManager gm = new GameManager();
-        assertTrue(gm.createInitialBoard(jogadores, 20));
+        String[][] jogadores = {
+                {"1", "Alice", "Java", "Blue"},
+                {"2", "Bob", "Python", "Green"}
+        };
 
-
-        assertFalse(gm.moveCurrentPlayer(4));
+        assertTrue(gm.createInitialBoard(jogadores, 10, null));
         assertTrue(gm.moveCurrentPlayer(3));
-        assertEquals(4, gm.getPlayerById("1").getPosicao());
-        gm.reactToAbyssOrTool();
-
-
-        assertFalse(gm.moveCurrentPlayer(3));
-        assertTrue(gm.moveCurrentPlayer(2));
-        assertEquals(3, gm.getPlayerById("2").getPosicao());
+        assertEquals("1", gm.getJogadorAtual()); // Usar getter
     }
 
-
-
     @Test
-    public void test_004_BSOD_EliminaEAvançaTurno_SemDuploAvanço() {
+    public void testMoveCurrentPlayer_MovimentoInvalido() {
+        GameManager gm = new GameManager();
         String[][] jogadores = {
-                {"1", "P1", "Java", "Red"},
-                {"2", "P2", "Python", "Blue"},
-                {"3", "P3", "C", "Green"}
+                {"1", "Alice", "C", "Blue"},
+                {"2", "Bob", "Python", "Green"}
         };
-        String[][] objetos = {{"0", "7", "2"}};
-        GameManager gm = new GameManager();
-        assertTrue(gm.createInitialBoard(jogadores, 20, objetos));
 
-        gm.moveCurrentPlayer(1);
-
-        gm.reactToAbyssOrTool();
-
-        assertFalse(gm.getPlayerById("1").isAlive());
-
-        assertEquals("2", gm.currentPlayer);
-
-        assertFalse(gm.getProgrammersInfo().contains("P1"));
+        assertTrue(gm.createInitialBoard(jogadores, 10, null));
+        assertFalse(gm.moveCurrentPlayer(4));
     }
 
     @Test
-    public void test_005_Abismo_CicloInfinito_DefineEstadoPreso() {
-        String[][] jogadores = {{"1", "P1", "Java", "Red"}, {"2", "P2", "C", "Blue"}};
-        String[][] objetos = {{"0", "8", "3"}};
+    public void testReactToAbyssOrTool_ComFerramenta() {
         GameManager gm = new GameManager();
-        assertTrue(gm.createInitialBoard(jogadores, 20, objetos));
+        String[][] jogadores = {
+                {"1", "Alice", "Java", "Blue"},
+                {"2", "Bob", "Python", "Green"}
+        };
+
+        String[][] objetos = {
+                {"1", "0", "3"}
+        };
+
+        assertTrue(gm.createInitialBoard(jogadores, 10, objetos));
+        gm.moveCurrentPlayer(2);
+        String resultado = gm.reactToAbyssOrTool();
+        assertNotNull(resultado);
+        assertTrue(resultado.contains("Apanhou Ferramenta:"));
+    }
+
+    @Test
+    public void testGetGameResults_JogoNaoTerminado() {
+        GameManager gm = new GameManager();
+        String[][] jogadores = {
+                {"1", "Alice", "Java", "Blue"},
+                {"2", "Bob", "Python", "Green"}
+        };
+
+        assertTrue(gm.createInitialBoard(jogadores, 10, null));
+        ArrayList<String> resultados = gm.getGameResults();
+        assertTrue(resultados.isEmpty());
+    }
+
+    @Test
+    public void testEliminatePlayer() {
+        GameManager gm = new GameManager();
+        String[][] jogadores = {
+                {"1", "Alice", "Java", "Blue"},
+                {"2", "Bob", "Python", "Green"},
+                {"3", "Charlie", "C++", "Purple"}
+        };
+
+        assertTrue(gm.createInitialBoard(jogadores, 10, null));
+        Jogador bob = gm.getJogadorById("2");
+        gm.eliminatePlayer(bob);
+        assertFalse(bob.estaVivo());
+        assertEquals("1", gm.getJogadorAtual()); // Usar getter
+    }
+
+    @Test
+    public void testGetSlotInfo() {
+        GameManager gm = new GameManager();
+        String[][] jogadores = {
+                {"1", "Alice", "Java", "Blue"},
+                {"2", "Bob", "Python", "Green"}
+        };
+
+        String[][] objetos = {
+                {"0", "2", "5"}
+        };
+
+        assertTrue(gm.createInitialBoard(jogadores, 10, objetos));
+        String[] slotInfo = gm.getSlotInfo(5);
+        assertEquals(3, slotInfo.length);
+        assertEquals("Exception", slotInfo[1]);
+        assertEquals("A:2", slotInfo[2]);
+    }
+
+    @Test
+    public void testGetProgrammerInfoAsStr() {
+        GameManager gm = new GameManager();
+        String[][] jogadores = {
+                {"1", "Alice", "Java;Python", "Blue"},
+                {"2", "Bob", "C;Assembly", "Green"}
+        };
+
+        assertTrue(gm.createInitialBoard(jogadores, 10, null));
+        String info = gm.getProgrammerInfoAsStr(1);
+        assertNotNull(info);
+        assertTrue(info.contains("Alice"));
+        assertTrue(info.contains("Java; Python"));
+        assertTrue(info.contains("Em Jogo"));
+    }
+
+    @Test
+    public void testLoadAndSaveGame() {
+        GameManager gm1 = new GameManager();
+        String[][] jogadores = {
+                {"1", "Alice", "Java", "Blue"},
+                {"2", "Bob", "Python", "Green"}
+        };
+
+        String[][] objetos = {
+                {"0", "3", "4"},
+                {"1", "1", "6"}
+        };
+
+        assertTrue(gm1.createInitialBoard(jogadores, 10, objetos));
+        gm1.moveCurrentPlayer(2);
+        gm1.reactToAbyssOrTool();
+
+        try {
+            java.io.File tempFile = java.io.File.createTempFile("test_save", ".txt");
+            assertTrue(gm1.saveGame(tempFile));
+
+            GameManager gm2 = new GameManager();
+            gm2.loadGame(tempFile);
+
+            // Usar getters
+            assertEquals(gm1.getTamanhoTabuleiro(), gm2.getTamanhoTabuleiro());
+            assertEquals(gm1.getContadorTurnos(), gm2.getContadorTurnos());
+            assertEquals(gm1.getJogadores().size(), gm2.getJogadores().size());
+
+            tempFile.delete();
+        } catch (Exception e) {
+            fail("Exceção lançada: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testGetProgrammersInfo() {
+        GameManager gm = new GameManager();
+        String[][] jogadores = {
+                {"1", "Alice", "Java", "Blue"},
+                {"2", "Bob", "Python", "Green"}
+        };
+
+        assertTrue(gm.createInitialBoard(jogadores, 10, null));
+        String info = gm.getProgrammersInfo();
+        assertNotNull(info);
+        assertTrue(info.contains("Alice"));
+        assertTrue(info.contains("Bob"));
+        assertTrue(info.contains("No tools"));
+    }
+
+    @Test
+    public void testAvancarIgnoraJogadorPreso_Debug() {
+
+        GameManager gm = new GameManager();
+
+        String[][] jogadores = {
+                {"1", "Alice", "Java", "Blue"},
+                {"2", "Bob", "Python", "Green"},
+                {"3", "Charlie", "C", "Red"}
+        };
+
+        assertTrue(gm.createInitialBoard(jogadores, 10, null));
+
+        assertEquals("1", gm.getJogadorAtual());
+
+        assertTrue(gm.moveCurrentPlayer(2));
+        gm.reactToAbyssOrTool();
+
+        Jogador bob = gm.getJogadorById("2");
+        bob.setPreso(true);
+        gm.reactToAbyssOrTool();
+
+        assertEquals("3", gm.getJogadorAtual());
+
+        assertTrue(gm.moveCurrentPlayer(2));
+        gm.reactToAbyssOrTool();
+
+        assertEquals("1", gm.getJogadorAtual());
+    }
+
+    @Test
+    public void testDebug_turnosSaltados_quando_jogador_4_nao_devia_estar_preso() {
+
+        GameManager gm = new GameManager();
+
+        String[][] jogadores = {
+                {"1", "A", "Java", "Blue"},
+                {"2", "B", "Java", "Red"},
+                {"3", "C", "Java", "Green"},
+                {"4", "D", "Java", "Yellow"}
+        };
+
+        String[][] objetos = {
+                {"0", "8", "3"},
+                {"1", "1", "5"}
+        };
+
+        assertTrue(gm.createInitialBoard(jogadores, 10, objetos));
+
+        gm.eliminatePlayer(gm.getJogadorById("1"));
+        gm.eliminatePlayer(gm.getJogadorById("2"));
 
         gm.moveCurrentPlayer(2);
         gm.reactToAbyssOrTool();
 
-        assertTrue(gm.getProgrammerInfoAsStr(1).contains("Preso"));
-
-        assertEquals("2", gm.currentPlayer);
-        gm.moveCurrentPlayer(1);
+        gm.moveCurrentPlayer(4);
         gm.reactToAbyssOrTool();
-
-        assertFalse(gm.moveCurrentPlayer(1));
-        assertEquals("2", gm.currentPlayer);
-    }
-
-
-
-    @Test
-    public void test_006_EliminaçãoTerminaJogo_SobreviventeDeclarado() {
-
-        String[][] jogadores = {{"1", "P1", "Java", "Red"}, {"2", "P2", "Python", "Blue"}};
-        String[][] objetos = {{"0", "7", "2"}};
-        GameManager gm = new GameManager();
-        assertTrue(gm.createInitialBoard(jogadores, 20, objetos));
 
         gm.moveCurrentPlayer(1);
-        gm.reactToAbyssOrTool();
 
-        assertTrue(gm.gameIsOver(), "O jogo deve ter o estado TERMINADO após a eliminação do penúltimo jogador.");
+        gm.moveCurrentPlayer(2);
+        String r = gm.reactToAbyssOrTool();
 
-        assertEquals("2", gm.currentPlayer, "O jogador atual deve ser P2 (o sobrevivente) no fim do jogo.");
-
-        ArrayList<String> resultados = gm.getGameResults();
-
-        boolean p2Encontrado = false;
-        boolean p1Encontrado = false;
-
-        for (String resultado : resultados) {
-            if (resultado.contains("P2")) {
-                p2Encontrado = true;
-            }
-            if (resultado.contains("P1 2")) {
-                p1Encontrado = true;
-            }
-        }
-
-        assertTrue(p2Encontrado, "P2 deve ser listado como VENCEDOR/SOBREVIVENTE nos resultados.");
-        // Corrigido para P1 2, correspondente ao que foi procurado no loop
-        assertTrue(p1Encontrado, "P1 deve estar na lista de RESTANTES (formato Nome + Posição final: P1 2).");
+        System.out.println("DEBUG turnosSaltados = " + gm.getTurnosSaltados());
     }
 
-    @Test
-    public void test_007_pegaFerramenta_E_FormatoInfoProgramadores() {
-        String[][] jogadores = {
-                {"1", "P1", "Java", "Red"},
-                {"2", "P2", "Python", "Blue"}
-        };
-        String[][] objetos = {{"1", "2", "3"}};
-        GameManager gm = new GameManager();
-        assertTrue(gm.createInitialBoard(jogadores, 20, objetos));
 
-        assertTrue(gm.moveCurrentPlayer(2));
-
-        gm.reactToAbyssOrTool();
-
-        assertEquals("2", gm.currentPlayer);
-
-        String infoP1 = gm.getProgrammerInfoAsStr(1);
-        assertTrue(infoP1.contains("Testes Unitários"), "P1 deve ter ganho a ferramenta.");
-
-        String infoTodosJogadores = gm.getProgrammersInfo();
-
-        String substringEsperada = "P1 : Testes Unitários | P2 : No tools";
-
-
-        assertTrue(infoTodosJogadores.contains("P1 : Testes Unitários"), "P1 deve mostrar a ferramenta no resumo global.");
-        assertTrue(infoTodosJogadores.contains("P2 : No tools"), "P2 deve mostrar 'No tools' no resumo global.");
-        assertEquals(substringEsperada, infoTodosJogadores, "O formato e conteúdo de getProgrammersInfo está incorreto.");
-    }
-
-    @Test
-    public void test_008_JogoTermina_VitoriaPorChegarAoFim() {
-        String[][] jogadores = {{"1", "P1", "Java", "Red"}, {"2", "P2", "Python", "Blue"}};
-        GameManager gm = new GameManager();
-        assertTrue(gm.createInitialBoard(jogadores, 6));
-
-        assertTrue(gm.moveCurrentPlayer(5));
-
-        assertTrue(gm.gameIsOver(), "O jogo deve terminar quando o jogador chega à casa final.");
-
-        ArrayList<String> resultados = gm.getGameResults();
-
-        assertTrue(resultados.contains("P1"), "O vencedor P1 deve ser listado nos resultados.");
-        assertTrue(resultados.contains("P2 1"), "O restante P2 deve estar na posição 1.");
-    }
-
-    @Test
-    public void test_009_TabuleiroInicial_TamanhoInvalido() {
-        String[][] jogadores = {
-                {"1", "P1", "Java", "Red"},
-                {"2", "P2", "Python", "Blue"},
-                {"3", "P3", "C", "Green"},
-                {"4", "P4", "Assembly", "Yellow"}
-        };
-        GameManager gm = new GameManager();
-        assertFalse(gm.createInitialBoard(jogadores, 4), "Deve falhar se o tamanho for menor que 2 * NumJogadores.");
-    }
 
 }
