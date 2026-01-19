@@ -301,43 +301,52 @@ public class GameManager {
     public ArrayList<String> getGameResults() {
         ArrayList<String> results = new ArrayList<>();
 
-        if (!gameIsOver()) {
-            return results;
-        }
+        if (!gameIsOver()) return results;
 
         results.add("THE GREAT PROGRAMMING JOURNEY");
         results.add("");
         results.add("NR. DE TURNOS");
         results.add(String.valueOf(turnCount));
         results.add("");
-        results.add("VENCEDOR");
 
         String vencedor = getWinnerName();
-        if (vencedor != null) {
-            results.add(vencedor);
+        boolean empate = vencedor == null;
+
+        if (empate) {
+            results.add("O jogo terminou empatado.");
         } else {
-            results.add("Desconhecido");
+            results.add("VENCEDOR");
+            results.add(vencedor);
         }
 
         results.add("");
-        results.add("RESTANTES");
+        results.add(empate ? "Participantes:" : "RESTANTES");
 
-        List<Player> restantes = new ArrayList<>();
-
+        List<String> info = new ArrayList<>();
         for (Player p : players) {
-            if (!p.getNome().equals(vencedor)) {
-                restantes.add(p);
+            String motivo;
+            if (!p.isAlive()) {
+                motivo = p.getLastAbyssHit();
+            } else if (skippedTurns.containsKey(p.getId()) && skippedTurns.get(p.getId()) > 0) {
+                motivo = p.getLastAbyssHit(); // ex: Ciclo Infinito
+            } else {
+                motivo = "Em Jogo";
             }
+
+            info.add(p.getNome() + " : " + p.getPosicao() + " : " + motivo);
         }
 
-        restantes.sort((a, b) -> b.getPosicao() - a.getPosicao());
+        // Ordenar por posição descendente
+        info.sort((a, b) -> Integer.compare(
+                Integer.parseInt(b.split(" : ")[1]),
+                Integer.parseInt(a.split(" : ")[1])
+        ));
 
-        for (Player p : restantes) {
-            results.add(p.getNome() + " " + p.getPosicao());
-        }
+        results.addAll(info);
 
         return results;
     }
+
 
     public String getWinnerName() {
         for (Player p : players) {

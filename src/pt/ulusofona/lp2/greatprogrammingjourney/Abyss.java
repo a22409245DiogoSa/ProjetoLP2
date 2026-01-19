@@ -75,10 +75,12 @@ public class Abyss extends AbyssOrTool {
                 break;
 
             case 7: // Blue Screen of Death
+                p.setLastAbyssHit(this.name);
                 gm.eliminatePlayer(p);
                 return "Caiu em " + name;
 
             case 8: // Ciclo Infinito
+                p.setLastAbyssHit(this.name);
                 gm.skipTurns(p, 3);
                 break;
 
@@ -110,6 +112,7 @@ public class Abyss extends AbyssOrTool {
 
             default:
                 // Nenhuma ação adicional
+                p.setLastAbyssHit(this.name);
                 break;
         }
 
