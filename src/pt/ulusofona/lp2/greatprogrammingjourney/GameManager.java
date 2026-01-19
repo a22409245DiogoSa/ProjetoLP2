@@ -112,6 +112,30 @@ public class GameManager {
         return true;
     }
 
+    private boolean canMove(Player p) {
+        if (!p.isAlive()) return false;
+        if (skippedTurns.containsKey(p.getId()) && skippedTurns.get(p.getId()) > 0) return false;
+
+        String firstLang = p.getLinguagens().contains(";") ? p.getLinguagens().split(";")[0].trim() : p.getLinguagens().trim();
+        for (int dado = 1; dado <= 6; dado++) {
+            if (firstLang.equalsIgnoreCase("C") && dado >= 4) continue;
+            if (firstLang.equalsIgnoreCase("Assembly") && dado >= 3) continue;
+            return true;
+        }
+        return false;
+    }
+
+    private void checkBlockedGame() {
+        boolean algumPodeMover = false;
+        for (Player p : players) {
+            if (canMove(p)) {
+                algumPodeMover = true;
+                break;
+            }
+        }
+        if (!algumPodeMover) gameState = EstadoJogo.TERMINADO;
+    }
+
     private String getAbyssName(int id) {
         switch (id) {
             case 0:
@@ -190,6 +214,7 @@ public class GameManager {
             advanceToNextPlayer();
         }
 
+        checkBlockedGame();
         return resultado;
     }
 
@@ -265,6 +290,7 @@ public class GameManager {
             return true;
         }
 
+        checkBlockedGame();
         return true;
     }
 
