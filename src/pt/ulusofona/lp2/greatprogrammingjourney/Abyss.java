@@ -20,6 +20,7 @@ public class Abyss extends AbyssOrTool {
 
     @Override
     public String apply(Player p, GameManager gm) {
+        // Mapa de ferramentas que podem anular cada abismo
         HashMap<Integer, String> anulacoes = new HashMap<>();
         anulacoes.put(0, "IDE");
         anulacoes.put(1, "Testes Unitários");
@@ -32,91 +33,85 @@ public class Abyss extends AbyssOrTool {
         anulacoes.put(8, "Programação Funcional");
         anulacoes.put(9, "IDE");
 
+        // Verifica se o jogador tem a ferramenta que anula o abismo
         String ferramentaNecessaria = anulacoes.get(id);
-
-
-        if (id == 20) { // LLM
-            int novaPosicao;
-
-            boolean quartoOuMaisMovimentos =
-                    p.getLastPosition() != p.getSecondLastPosition();
-
-            if (quartoOuMaisMovimentos) {
-                // avança tantas casas quanto o último movimento
-                novaPosicao = p.getPosicao() + gm.getLastDiceRoll();
-            } else {
-                // antes do 4.º movimento
-                novaPosicao = p.getLastPosition();
-
-                // anulação parcial com Ajuda do Professor
-                if (p.getFerramentas().contains("Ajuda Do Professor")) {
-                    p.getFerramentas().remove("Ajuda Do Professor");
-                    return name + " anulado por Ajuda Do Professor";
-                }
-            }
-
-            gm.setPlayerPosition(p, novaPosicao);
-            return "Caiu em " + name;
-        }
-
-
         if (ferramentaNecessaria != null && p.getFerramentas().contains(ferramentaNecessaria)) {
             p.getFerramentas().remove(ferramentaNecessaria);
             return this.name + " anulado por " + ferramentaNecessaria;
         }
 
-
         int novaPosicao = p.getPosicao();
 
+        // Lógica de cada abismo
         switch (id) {
             case 0: // Syntax Error
                 novaPosicao = Math.max(1, p.getPosicao() - 1);
                 break;
 
-            case 1: // Logic Error → Recua N casas = floor(dado / 2) E perde 1 turno
+            case 1: // Logic Error
                 int lastRoll = gm.getLastDiceRoll();
                 int recuo = (int) Math.floor(lastRoll / 2.0);
-
                 novaPosicao = Math.max(1, p.getPosicao() - recuo);
-                // REMOVIDO: gm.skipTurns(p, 1); // Não perdem turno
                 break;
 
-            case 2:
+            case 2: // Exception
                 novaPosicao = Math.max(1, p.getPosicao() - 2);
                 break;
 
-            case 3: // FileNotFound → Recua 3 casas
+            case 3: // FileNotFoundException
                 novaPosicao = Math.max(1, p.getPosicao() - 3);
                 break;
 
-            case 4: // Crash → volta à primeira casa
+            case 4: // Crash
                 novaPosicao = 1;
                 break;
 
-            case 5: // Código Duplicado → recua para a posição anterior E perde 1 turno
+            case 5: // Código Duplicado
                 novaPosicao = p.getLastPosition();
-
                 break;
 
-            case 6: // Efeitos Secundários → recua para a posição de 2 movimentos atrás E perde 1 turno
+            case 6: // Efeitos Secundários
                 novaPosicao = p.getSecondLastPosition();
-
                 break;
 
-            case 7: // BSOD → perde imediatamente o jogo
+            case 7: // Blue Screen of Death
                 gm.eliminatePlayer(p);
                 return "Caiu em " + name;
 
-            case 8: // Ciclo Infinito → perde 3 turnos
+            case 8: // Ciclo Infinito
                 gm.skipTurns(p, 3);
                 break;
 
-            case 9: // Segmentation Fault → Se >= 2 jogadores, todos recuam 3 casas
+            case 9: // Segmentation Fault
                 novaPosicao = Math.max(1, p.getPosicao() - 3);
+                break;
+
+            case 20: { // LLM
+                boolean quartoOuMaisMovimentos = p.getLastPosition() != p.getSecondLastPosition();
+
+                if (quartoOuMaisMovimentos) {
+                    // A partir do 4.º movimento → avança o último dado
+                    novaPosicao = p.getPosicao() + gm.getLastDiceRoll();
+                } else {
+                    // Antes do 4.º movimento → recua para a posição anterior
+                    novaPosicao = p.getLastPosition();
+
+                    // Anulação parcial com Ajuda do Professor
+                    if (p.getFerramentas().contains("Ajuda Do Professor")) {
+                        p.getFerramentas().remove("Ajuda Do Professor");
+                        gm.setPlayerPosition(p, novaPosicao);
+                        return name + " anulado por Ajuda Do Professor";
+                    }
+                }
+                break;
+            }
+
+            default:
+                // Nenhuma ação adicional
                 break;
         }
 
-
+        // Atualiza a posição do jogador se mudou
         if (novaPosicao != p.getPosicao()) {
             gm.setPlayerPosition(p, novaPosicao);
         }
