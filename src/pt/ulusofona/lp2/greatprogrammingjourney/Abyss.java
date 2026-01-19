@@ -87,20 +87,22 @@ public class Abyss extends AbyssOrTool {
                 break;
 
             case 20: { // LLM
-                boolean quartoOuMaisMovimentos = p.getLastPosition() != p.getSecondLastPosition();
+                // Detecta se o jogador ainda está antes do 4º movimento
+                boolean antesDoQuartoMovimento = p.getSecondLastPosition() == 1;
 
-                if (!quartoOuMaisMovimentos) {
-                    // Antes do 4.º movimento → recua para a posição anterior
+                if (antesDoQuartoMovimento) {
+                    // Retrocede para a posição anterior
                     novaPosicao = p.getLastPosition();
 
-                    // Anulação parcial com Ajuda do Professor
+                    // Se tiver a ferramenta "Ajuda Do Professor", anula parcialmente o abismo
                     if (p.getFerramentas().contains("Ajuda Do Professor")) {
                         p.getFerramentas().remove("Ajuda Do Professor");
                         return name + " anulado por Ajuda Do Professor";
                     }
                 } else {
-                    // A partir do 4.º movimento → avança o último dado
+                    // A partir do 4º movimento → avança o número de casas do último dado
                     novaPosicao = p.getPosicao() + gm.getLastDiceRoll();
+                    // Ignora a ferramenta "Ajuda Do Professor"
                 }
                 break;
             }
