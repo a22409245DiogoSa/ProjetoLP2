@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.List;
 
 public class GameManager {
+    // Atributos de estado do jogo e definições do mundo
     private String[][] playerInfo;
     private int boardSize;
     String currentPlayer;
@@ -15,7 +16,7 @@ public class GameManager {
     private ArrayList<String>[] board;
     private HashMap<String, Integer> positions;
     private int turnCount = 1;
-    private HashMap<String, Integer> skippedTurns = new HashMap<>();
+    private HashMap<String, Integer> skippedTurns = new HashMap<>(); // Controlo de jogadores presos
     private int lastDiceRoll = 0;
     private List<Player> players = new ArrayList<>();
     private Board gameBoard;
@@ -23,14 +24,21 @@ public class GameManager {
     public GameManager() {
     }
 
+    public int getBoardSize() {
+        return this.boardSize;
+    }
+
+    /**
+     * Inicializa o tabuleiro, valida dados de entrada e cria os jogadores e objetos.
+     */
     public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
+        // Validação de limites: número de jogadores e tamanho do mundo
         if (playerInfo == null || playerInfo.length < 2 || playerInfo.length > 4) {
             return false;
         }
         if (worldSize < (2 * playerInfo.length)) {
             return false;
         }
-
 
         this.playerInfo = playerInfo;
         this.boardSize = worldSize;
@@ -39,7 +47,7 @@ public class GameManager {
         this.players.clear();
         this.skippedTurns.clear();
 
-
+        // Instanciação e registo de jogadores
         for (String[] jogador : playerInfo) {
             if (jogador == null || jogador.length != 4) {
                 return false;
@@ -56,13 +64,13 @@ public class GameManager {
             gameBoard.addPlayer(p);
         }
 
-
+        // Ordenação por ID para garantir a ordem correta dos turnos
         players.sort(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
         currentPlayer = players.get(0).getId();
         gameState = EstadoJogo.EM_ANDAMENTO;
         turnCount = 1;
 
-
+        // Processamento da lista de Abismos e Ferramentas (se existirem)
         if (abyssesAndTools != null) {
             for (String[] item : abyssesAndTools) {
                 if (item == null || item.length != 3) {
@@ -74,25 +82,21 @@ public class GameManager {
                     int idSubtype = Integer.parseInt(item[1]);
                     int position = Integer.parseInt(item[2]);
 
-
                     if (position < 1 || position > worldSize) {
                         return false;
                     }
                     if (gameBoard.getObjectAt(position) != null) {
-                        return false; // Apenas 1 objeto por casa
+                        return false; // Regra: Apenas 1 objeto por casa
                     }
 
-
-                    if (type == 0) {
-
+                    if (type == 0) { // Criação de Abismo
                         String name = getAbyssName(idSubtype);
                         if (name == null) {
                             return false;
                         }
                         Abyss abyss = new Abyss(idSubtype, name, position);
                         gameBoard.placeObject(abyss);
-                    } else if (type == 1) {
-
+                    } else if (type == 1) { // Criação de Ferramenta
                         String name = getToolName(idSubtype);
                         if (name == null) {
                             return false;
@@ -111,49 +115,33 @@ public class GameManager {
         return true;
     }
 
+    // Auxiliar: Mapeia o ID do sub-tipo para o nome oficial do Abismo
     private String getAbyssName(int id) {
         switch (id) {
-            case 0:
-                return "Erro de sintaxe";
-            case 1:
-                return "Erro de lógica";
-            case 2:
-                return "Exception";
-            case 3:
-                return "FileNotFoundException";
-            case 4:
-                return "Crash";
-            case 5:
-                return "Código duplicado";
-            case 6:
-                return "Efeitos secundários";
-            case 7:
-                return "Blue Screen of Death";
-            case 8:
-                return "Ciclo infinito";
-            case 9:
-                return "Segmentation fault";
-            default:
-                return null;
+            case 0: return "Erro de sintaxe";
+            case 1: return "Erro de lógica";
+            case 2: return "Exception";
+            case 3: return "FileNotFoundException";
+            case 4: return "Crash";
+            case 5: return "Código duplicado";
+            case 6: return "Efeitos secundários";
+            case 7: return "Blue Screen of Death";
+            case 8: return "Ciclo infinito";
+            case 9: return "Segmentation fault";
+            default: return null;
         }
     }
 
+    // Auxiliar: Mapeia o ID do sub-tipo para o nome oficial da Ferramenta
     private String getToolName(int id) {
         switch (id) {
-            case 0:
-                return "Herança";
-            case 1:
-                return "Programação Funcional";
-            case 2:
-                return "Testes Unitários";
-            case 3:
-                return "Tratamento de Excepções";
-            case 4:
-                return "IDE";
-            case 5:
-                return "Ajuda Do Professor";
-            default:
-                return null;
+            case 0: return "Herança";
+            case 1: return "Programação Funcional";
+            case 2: return "Testes Unitários";
+            case 3: return "Tratamento de Excepções";
+            case 4: return "IDE";
+            case 5: return "Ajuda Do Professor";
+            default: return null;
         }
     }
 
@@ -165,6 +153,9 @@ public class GameManager {
         return Integer.parseInt(currentPlayer);
     }
 
+    /**
+     * Gere a interação do jogador com o objeto da casa atual e avança o turno.
+     */
     public String reactToAbyssOrTool() {
         Player p = getPlayerById(currentPlayer);
         if (p == null) {
@@ -181,6 +172,7 @@ public class GameManager {
             return null;
         }
 
+        // Delegação da lógica de reação para o objeto específico (Polimorfismo)
         resultado = obj.apply(p, this);
 
         if (gameState != EstadoJogo.TERMINADO && p.isAlive()) {
@@ -190,8 +182,9 @@ public class GameManager {
         return resultado;
     }
 
-    ;
-
+    /**
+     * Move o jogador atual, validando bloqueios (turnos saltados) e limites de linguagem.
+     */
     public boolean moveCurrentPlayer(int nrSpaces) {
         if (gameState == EstadoJogo.TERMINADO || gameBoard == null) {
             return false;
@@ -203,16 +196,14 @@ public class GameManager {
 
         Player atual = getPlayerById(currentPlayer);
 
-
         if (atual == null || !atual.isAlive()) {
             advanceToNextPlayer();
             return false;
         }
 
-
+        // Verificação de penalização de espera (Prisão)
         Integer skips = skippedTurns.getOrDefault(atual.getId(), 0);
         if (skips > 0) {
-
             skippedTurns.put(atual.getId(), skips - 1);
 
             if (skippedTurns.get(atual.getId()) == 0) {
@@ -224,14 +215,12 @@ public class GameManager {
             return false;
         }
 
-
         if (nrSpaces < 1 || nrSpaces > 6) {
             return false;
         }
 
-
-        String linguagem = atual.getLinguagens(); // Ex: "C;Java" ou "Assembly;C#"
-
+        // Regras específicas de movimento por linguagem de programação
+        String linguagem = atual.getLinguagens();
         if (linguagem != null && !linguagem.isEmpty()) {
             String firstLang = linguagem;
             if (linguagem.contains(";")) {
@@ -239,11 +228,9 @@ public class GameManager {
             }
             String trimmedFirstLang = firstLang.trim();
 
-
             if (trimmedFirstLang.equalsIgnoreCase("C") && nrSpaces >= 4) {
                 return false;
             }
-
 
             if (trimmedFirstLang.equalsIgnoreCase("Assembly") && nrSpaces >= 3) {
                 return false;
@@ -251,12 +238,13 @@ public class GameManager {
         }
 
 
-
         gameBoard.movePlayer(atual, nrSpaces);
         this.lastDiceRoll = nrSpaces;
         turnCount++;
 
 
+
+        // Condição de vitória (Chegar à última casa)
         if (gameBoard.isAtEnd(atual)) {
             gameState = EstadoJogo.TERMINADO;
             return true;
@@ -266,12 +254,31 @@ public class GameManager {
     }
 
     public boolean gameIsOver() {
-        return gameState == EstadoJogo.TERMINADO;
+        if (gameState == EstadoJogo.TERMINADO) return true;
+
+        int jogadoresAtivosECapazes = 0;
+        for (Player p : players) {
+            if (p.isAlive()) {
+                // Verifica se não está preso num skipTurn eterno ou se há caminho
+                Integer skips = skippedTurns.getOrDefault(p.getId(), 0);
+                if (skips < 100) { // Exemplo de threshold para considerar "preso para sempre"
+                    jogadoresAtivosECapazes++;
+                }
+            }
+        }
+
+        if (jogadoresAtivosECapazes == 0) {
+            gameState = EstadoJogo.TERMINADO;
+            return true;
+        }
+        return false;
     }
+
 
     public ArrayList<String> getGameResults() {
         ArrayList<String> results = new ArrayList<>();
 
+        // O método só deve processar se o jogo realmente acabou
         if (!gameIsOver()) {
             return results;
         }
@@ -281,30 +288,36 @@ public class GameManager {
         results.add("NR. DE TURNOS");
         results.add(String.valueOf(turnCount));
         results.add("");
-        results.add("VENCEDOR");
 
         String vencedor = getWinnerName();
-        if (vencedor != null) {
-            results.add(vencedor);
-        } else {
-            results.add("Desconhecido");
-        }
 
-        results.add("");
-        results.add("RESTANTES");
+        if (vencedor == null) {
+            // Se não há vencedor, adiciona a mensagem de empate conforme a imagem
+            results.add("O jogo terminou empatado.");
+            results.add("");
+            results.add("Participantes:");
 
-        List<Player> restantes = new ArrayList<>();
-
-        for (Player p : players) {
-            if (!p.getNome().equals(vencedor)) {
-                restantes.add(p);
+            // Lista todos os participantes e o motivo de terem perdido/parado
+            for (Player p : players) {
+                results.add(p.getNome() + " : " + p.getPosicao() + " : " + p.getMotivoParagem());
             }
-        }
+        } else {
+            // Lógica normal para quando existe um vencedor
+            results.add("VENCEDOR");
+            results.add(vencedor);
+            results.add("");
+            results.add("RESTANTES");
 
-        restantes.sort((a, b) -> b.getPosicao() - a.getPosicao());
-
-        for (Player p : restantes) {
-            results.add(p.getNome() + " " + p.getPosicao());
+            List<Player> restantes = new ArrayList<>();
+            for (Player p : players) {
+                if (!p.getNome().equals(vencedor)) {
+                    restantes.add(p);
+                }
+            }
+            restantes.sort((a, b) -> b.getPosicao() - a.getPosicao());
+            for (Player p : restantes) {
+                results.add(p.getNome() + " " + p.getPosicao());
+            }
         }
 
         return results;
@@ -321,26 +334,17 @@ public class GameManager {
 
     public String getProgrammersInfo() {
         List<String> infoParts = new ArrayList<>();
-
         for (Player p : players) {
             if (p.isAlive()) {
                 String nome = p.getNome();
                 List<String> tools = p.getFerramentas();
 
-                String toolsStr;
-                if (tools.isEmpty()) {
-                    toolsStr = "No tools";
-                } else {
-                    toolsStr = String.join(";", tools);
-                }
-
+                String toolsStr = tools.isEmpty() ? "No tools" : String.join(";", tools);
                 infoParts.add(nome + " : " + toolsStr);
             }
         }
-
         return String.join(" | ", infoParts);
     }
-
 
     public String[] getProgrammerInfo(int id) {
         for (Player p : players) {
@@ -357,9 +361,7 @@ public class GameManager {
             return null;
         }
 
-        String tools = p.getFerramentas().isEmpty() ? "No tools"
-                : String.join("; ", p.getFerramentas());
-
+        String tools = p.getFerramentas().isEmpty() ? "No tools" : String.join(";", p.getFerramentas());
         String estado;
         if (!p.isAlive()) {
             estado = "Derrotado";
@@ -369,9 +371,12 @@ public class GameManager {
             estado = "Em Jogo";
         }
 
-
-        return p.getId() + " | " + p.getNome() + " | " + p.getPosicao() + " | " + tools +
-                " | " + p.getLinguagensOrdenadas() + " | " + estado;
+        if (p.getCor().contains("Blue") && p.getFerramentas().contains("IDE")) {
+            return p.getNome()+ ": Blue is IDE";
+        } else {
+            return p.getId() + " | " + p.getNome() + " | " + p.getPosicao() + " | " + tools +
+                    " | " + p.getLinguagensOrdenadas() + " | " + estado;
+        }
     }
 
     public String[] getSlotInfo(int position) {
@@ -409,6 +414,9 @@ public class GameManager {
         skippedTurns.put(p.getId(), skippedTurns.getOrDefault(p.getId(), 0) + n);
     }
 
+    /**
+     * Remove um jogador do jogo e verifica se restam participantes suficientes.
+     */
     public void eliminatePlayer(Player p) {
         if (p == null) {
             return;
@@ -416,10 +424,8 @@ public class GameManager {
 
         p.setAlive(false);
 
-
         int aliveCount = 0;
         Player lastAlivePlayer = null;
-
 
         for (Player player : players) {
             if (player.isAlive()) {
@@ -433,7 +439,7 @@ public class GameManager {
             if (aliveCount == 1) {
                 currentPlayer = lastAlivePlayer.getId();
             } else {
-                currentPlayer = null; // Ninguém sobreviveu
+                currentPlayer = null; // Todos eliminados
             }
             return;
         }
@@ -443,6 +449,9 @@ public class GameManager {
         }
     }
 
+    /**
+     * Cicla para o próximo jogador vivo na lista.
+     */
     private void advanceToNextPlayer() {
         if (players.isEmpty()) {
             currentPlayer = null;
@@ -470,7 +479,11 @@ public class GameManager {
         gameState = EstadoJogo.TERMINADO;
     }
 
+    /**
+     * Lê o ficheiro de salvamento e reconstrói todo o ambiente de jogo.
+     */
     public void loadGame(File file) throws InvalidFileException, FileNotFoundException {
+        // Reset de variáveis antes do load
         players.clear();
         skippedTurns.clear();
         gameBoard = null;
@@ -479,7 +492,6 @@ public class GameManager {
         turnCount = 1;
         lastDiceRoll = 0;
         boardSize = 0;
-
 
         List<String> lines = new ArrayList<>();
         try (Scanner scanner = new Scanner(file)) {
@@ -497,7 +509,6 @@ public class GameManager {
         List<String[]> playerData = new ArrayList<>();
         List<String[]> objectData = new ArrayList<>();
 
-
         for (String line : lines) {
             if (line.isEmpty() || line.startsWith("GPJ_SAVE_FILE")) {
                 continue;
@@ -508,11 +519,8 @@ public class GameManager {
 
             try {
                 switch (type) {
-                    case "GS":
-                        // GS|<boardSize>|<turnCount>|<currentPlayer>|<gameState>|<lastDiceRoll>
-                        if (parts.length != 6) {
-                            throw new InvalidFileException("Linha GS corrompida.");
-                        }
+                    case "GS": // Global State
+                        if (parts.length != 6) throw new InvalidFileException("Linha GS corrompida.");
                         boardSize = Integer.parseInt(parts[1]);
                         turnCount = Integer.parseInt(parts[2]);
                         currentPlayer = parts[3];
@@ -520,29 +528,18 @@ public class GameManager {
                         lastDiceRoll = Integer.parseInt(parts[5]);
                         gameBoard = new Board(boardSize);
                         break;
-                    case "ST":
-                        // ST|<PlayerID>|<TurnsLeft>
-                        if (parts.length != 3) {
-                            throw new InvalidFileException("Linha ST corrompida.");
-                        }
+                    case "ST": // Skipped Turns
+                        if (parts.length != 3) throw new InvalidFileException("Linha ST corrompida.");
                         skippedTurns.put(parts[1], Integer.parseInt(parts[2]));
                         break;
-                    case "P":
-                        // P|<ID>|<Nome>|<Linguagens>|<Cor>|<Posicao>|<Alive>|<lastPosition>|<secondLastPosition>|<Tool1;Tool2;...>
-                        if (parts.length != 10) {
-                            throw new InvalidFileException("Linha P corrompida.");
-                        }
+                    case "P": // Player
+                        if (parts.length != 10) throw new InvalidFileException("Linha P corrompida.");
                         playerData.add(parts);
                         break;
-                    case "O":
-                        // O|<Type:A/T>|<SubtypeID>|<Position>
-                        if (parts.length != 4) {
-                            throw new InvalidFileException("Linha O corrompida.");
-                        }
+                    case "O": // Object
+                        if (parts.length != 4) throw new InvalidFileException("Linha O corrompida.");
                         objectData.add(parts);
                         break;
-                    default:
-
                 }
             } catch (Exception e) {
                 throw new InvalidFileException("Corrupção de dados na linha: " + line);
@@ -554,17 +551,15 @@ public class GameManager {
         }
 
         restorePlayers(playerData);
-
         restoreGameObjects(objectData);
 
-
+        // Validação se o jogador guardado no ficheiro ainda é válido
         boolean currentPlayerIsValid = false;
         Player firstActive = null;
         for (Player p : players) {
             if (p.getId().equals(currentPlayer) && p.isAlive()) {
                 currentPlayerIsValid = true;
             }
-
             if (p.isAlive() && firstActive == null) {
                 firstActive = p;
             }
@@ -575,21 +570,20 @@ public class GameManager {
         }
     }
 
+    /**
+     * Serializa o estado atual do jogo para um ficheiro de texto.
+     */
     public boolean saveGame(File file) {
         try (FileWriter writer = new FileWriter(file)) {
             writer.write("GPJ_SAVE_FILE\n");
-
 
             String gameStateStr = gameState.name();
             String globalStateLine = "GS|" + boardSize + "|" + turnCount + "|" + currentPlayer + "|" + gameStateStr + "|" + lastDiceRoll + "\n";
             writer.write(globalStateLine);
 
-            // 3. Turnos Saltados
             for (Map.Entry<String, Integer> entry : skippedTurns.entrySet()) {
-                // ST|<PlayerID>|<TurnsLeft>
                 writer.write("ST|" + entry.getKey() + "|" + entry.getValue() + "\n");
             }
-
 
             for (Player p : players) {
                 String toolsStr = String.join(";", p.getFerramentas());
@@ -607,7 +601,6 @@ public class GameManager {
                     }
                 }
             }
-
             return true;
         } catch (java.io.IOException e) {
             return false;
@@ -618,11 +611,8 @@ public class GameManager {
         if (p == null || gameBoard == null) {
             return;
         }
-
         int oldPos = p.getPosicao();
-
         gameBoard.updatePlayerPosition(p, oldPos, newPos);
-
         p.setPosicao(newPos);
     }
 
@@ -634,6 +624,7 @@ public class GameManager {
         return lastDiceRoll;
     }
 
+    // Auxiliar de Load: Reconstrói objetos no tabuleiro
     private void restoreGameObjects(List<String[]> objectData) throws InvalidFileException {
         for (String[] data : objectData) {
             String typeChar = data[1];
@@ -643,15 +634,11 @@ public class GameManager {
             AbyssOrTool obj = null;
             if (typeChar.equals("A")) {
                 String name = getAbyssName(idSubtype);
-                if (name == null) {
-                    throw new InvalidFileException("ID de Abismo inválido no ficheiro.");
-                }
+                if (name == null) throw new InvalidFileException("ID de Abismo inválido.");
                 obj = new Abyss(idSubtype, name, position);
             } else if (typeChar.equals("T")) {
                 String name = getToolName(idSubtype);
-                if (name == null) {
-                    throw new InvalidFileException("ID de Ferramenta inválido no ficheiro.");
-                }
+                if (name == null) throw new InvalidFileException("ID de Ferramenta inválido.");
                 obj = new Tool(idSubtype, name, position);
             }
 
@@ -661,6 +648,7 @@ public class GameManager {
         }
     }
 
+    // Auxiliar de Load: Reconstrói lista de jogadores e histórico de posições
     private void restorePlayers(List<String[]> playerData) throws InvalidFileException {
         for (String[] data : playerData) {
             String id = data[1];
@@ -675,7 +663,6 @@ public class GameManager {
 
             Player p = new Player(id, nome, linguagens, cor);
             p.setAlive(alive);
-
             p.setPosicaoForLoad(posicao);
             p.setLastPosition(lastPos);
             p.setSecondLastPosition(secondLastPos);
@@ -689,6 +676,15 @@ public class GameManager {
         }
         players.sort(Comparator.comparingInt(p -> Integer.parseInt(p.getId())));
     }
+
+    public int countToolsBetweenPositions(int position1, int position2) {
+        int count = 0;
+        while (position1 + 1 < position2) {
+            if (gameBoard.getObjectAt(position1 + 1).getType() == "Tool") {
+                count++;
+            }
+            position1++;
+        }
+        return count;
+    }
 }
-
-
