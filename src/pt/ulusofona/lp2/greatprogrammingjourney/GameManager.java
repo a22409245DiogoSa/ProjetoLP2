@@ -134,6 +134,8 @@ public class GameManager {
                 return "Ciclo infinito";
             case 9:
                 return "Segmentation fault";
+            case 20:
+                return "LLM";
             default:
                 return null;
         }
