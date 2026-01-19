@@ -24,10 +24,6 @@ public class GameManager {
     public GameManager() {
     }
 
-    public int getBoardSize() {
-        return this.boardSize;
-    }
-
     /**
      * Inicializa o tabuleiro, valida dados de entrada e cria os jogadores e objetos.
      */
@@ -201,6 +197,8 @@ public class GameManager {
             return false;
         }
 
+        atual.incMovimentos();
+
         // Verificação de penalização de espera (Prisão)
         Integer skips = skippedTurns.getOrDefault(atual.getId(), 0);
         if (skips > 0) {
@@ -274,50 +272,48 @@ public class GameManager {
         return false;
     }
 
-
+    /**
+     * Gera os resultados finais ordenados quando o jogo acaba.
+     */
     public ArrayList<String> getGameResults() {
         ArrayList<String> results = new ArrayList<>();
 
-        // O método só deve processar se o jogo realmente acabou
         if (!gameIsOver()) {
             return results;
         }
+
+
 
         results.add("THE GREAT PROGRAMMING JOURNEY");
         results.add("");
         results.add("NR. DE TURNOS");
         results.add(String.valueOf(turnCount));
         results.add("");
+        results.add("VENCEDOR");
 
         String vencedor = getWinnerName();
-
-        if (vencedor == null) {
-            // Se não há vencedor, adiciona a mensagem de empate conforme a imagem
-            results.add("O jogo terminou empatado.");
-            results.add("");
-            results.add("Participantes:");
-
-            // Lista todos os participantes e o motivo de terem perdido/parado
-            for (Player p : players) {
-                results.add(p.getNome() + " : " + p.getPosicao() + " : " + p.getMotivoParagem());
-            }
-        } else {
-            // Lógica normal para quando existe um vencedor
-            results.add("VENCEDOR");
+        if (vencedor != null) {
             results.add(vencedor);
-            results.add("");
-            results.add("RESTANTES");
+        } else {
+            results.add("Desconhecido");
+        }
 
-            List<Player> restantes = new ArrayList<>();
-            for (Player p : players) {
-                if (!p.getNome().equals(vencedor)) {
-                    restantes.add(p);
-                }
+        results.add("");
+        results.add("RESTANTES");
+
+        List<Player> restantes = new ArrayList<>();
+
+        for (Player p : players) {
+            if (!p.getNome().equals(vencedor)) {
+                restantes.add(p);
             }
-            restantes.sort((a, b) -> b.getPosicao() - a.getPosicao());
-            for (Player p : restantes) {
-                results.add(p.getNome() + " " + p.getPosicao());
-            }
+        }
+
+        // Ordenação dos restantes pela posição alcançada
+        restantes.sort((a, b) -> b.getPosicao() - a.getPosicao());
+
+        for (Player p : restantes) {
+            results.add(p.getNome() + " " + p.getPosicao());
         }
 
         return results;

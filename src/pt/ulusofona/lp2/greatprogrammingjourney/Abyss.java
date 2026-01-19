@@ -72,28 +72,24 @@ public class Abyss extends AbyssOrTool {
                 novaPosicao = Math.max(1, p.getPosicao() - 3);
                 break; // SegFault
 
-            case 20: // LLM
-                String ferramentaLLM = "Ajuda Do Professor";
-                int ultimoDado = gm.getLastDiceRoll();
-                // Regra: A partir do 4º movimento, avança com ressalto
+            case 20: // ABISMO LLM
                 if (p.getMovimentosRealizados() >= 4) {
-                    novaPosicao = p.getPosicao() + ultimoDado;
-                    if (novaPosicao > gm.getBoardSize()) {
-                        int excesso = novaPosicao - gm.getBoardSize();
-                        novaPosicao = gm.getBoardSize() - excesso;
+                    // Avança o valor do último dado com ressalto
+                    int destino = p.getPosicao() + ultimoDado;
+                    if (destino > gm.getBoardSize()) {
+                        destino = gm.getBoardSize() - (destino - gm.getBoardSize());
                     }
-                    gm.setPlayerPosition(p, novaPosicao);
+                    gm.setPlayerPosition(p, destino);
                     return "LLM: Avançou " + ultimoDado + " casas";
                 }
 
-                // Regra: Antes do 4º movimento, verifica ferramenta ou recua
                 if (p.getFerramentas().contains(ferramentaLLM)) {
                     p.getFerramentas().remove(ferramentaLLM);
-                    return name + " anulado por " + ferramentaLLM;
+                    return name + " anulado parcialmente por " + ferramentaLLM;
                 } else {
                     novaPosicao = p.getLastPosition();
                     gm.setPlayerPosition(p, novaPosicao);
-                    return "Caiu no " + name + ": Recuou para a posição onde estava antes ";
+                    return "Caiu em " + name + ": Recuou";
                 }
             case 150: {
                     String linguagem = p.getLinguagens();

@@ -27,11 +27,6 @@ public class Player {
     private int movimentosRealizados = 0;
     private String motivoParagem = "Em Jogo";
 
-    public int getMovimentosRealizados() { return movimentosRealizados; }
-    public void incMovimentos() { this.movimentosRealizados++; }
-
-    public String getMotivoParagem() { return motivoParagem; }
-    public void setMotivoParagem(String motivo) { this.motivoParagem = motivo; }
     // Construtor: Inicializa os dados básicos e formata a cor
     public Player(String id, String nome, String linguagens, String cor) {
         this.id = id;
@@ -40,6 +35,13 @@ public class Player {
         // Normaliza a cor para Capitalized (ex: "VERMELHO" -> "Vermelho")
         this.cor = cor.substring(0, 1).toUpperCase() + cor.substring(1).toLowerCase();
     }
+
+    public int getMovimentosRealizados() { return movimentosRealizados; }
+    public void incMovimentos() { this.movimentosRealizados++; }
+
+    public String getMotivoParagem() { return motivoParagem; }
+    public void setMotivoParagem(String motivo) { this.motivoParagem = motivo; }
+
 
     // Getters e Setters para o estado de vida
     public boolean isAlive() {
