@@ -35,6 +35,31 @@ public class Abyss extends AbyssOrTool {
         String ferramentaNecessaria = anulacoes.get(id);
 
 
+        if (id == 20) { // LLM
+            int novaPosicao;
+
+            boolean quartoOuMaisMovimentos =
+                    p.getLastPosition() != p.getSecondLastPosition();
+
+            if (quartoOuMaisMovimentos) {
+                // avança tantas casas quanto o último movimento
+                novaPosicao = p.getPosicao() + gm.getLastDiceRoll();
+            } else {
+                // antes do 4.º movimento
+                novaPosicao = p.getLastPosition();
+
+                // anulação parcial com Ajuda do Professor
+                if (p.getFerramentas().contains("Ajuda Do Professor")) {
+                    p.getFerramentas().remove("Ajuda Do Professor");
+                    return name + " anulado por Ajuda Do Professor";
+                }
+            }
+
+            gm.setPlayerPosition(p, novaPosicao);
+            return "Caiu em " + name;
+        }
+
+
         if (ferramentaNecessaria != null && p.getFerramentas().contains(ferramentaNecessaria)) {
             p.getFerramentas().remove(ferramentaNecessaria);
             return this.name + " anulado por " + ferramentaNecessaria;
